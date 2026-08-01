@@ -32,58 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
     $('#btnFontInc').addEventListener('click', () => pinchEngine.changeFontSize(0.1));
     $('#btnFontDec').addEventListener('click', () => pinchEngine.changeFontSize(-0.1));
 
-    // APK 설치 버튼: saju_app.apk 존재 여부를 감지해 다운로드 또는 안내 토스트 표시
-    // (GitHub Releases 원격 URL 연동: 같은 출처가 아니면 download 속성이 무시되므로 새 탭으로 다운로드 유도)
-    const btnApk = $('#btnApkDownload');
-    if (btnApk) {
-        btnApk.addEventListener('click', (e) => {
-            e.preventDefault(); // 기본 동작을 막고 다운로드 경로를 직접 제어
-            const href = btnApk.getAttribute('href') || 'saju_app.apk';
-            const isRemote = /^https?:\/\//i.test(href);
-
-            const tryDownload = () => {
-                const a = document.createElement('a');
-                a.href = href;
-                if (isRemote) {
-                    // 원격(GitHub Releases) URL: 새 탭으로 열어 브라우저가 APK를 다운로드하도록 유도
-                    a.target = '_blank';
-                    a.rel = 'noopener noreferrer';
-                } else {
-                    a.download = 'saju_app.apk';
-                }
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-            };
-
-            if (isRemote) {
-                // 원격 URL은 CORS로 인해 fetch 검증이 실패할 수 있으므로 바로 새 탭 다운로드 유도
-                tryDownload();
-                showToast('APK 다운로드를 시작합니다.', '📱');
-                return;
-            }
-
-            // 로컬 파일: 존재 여부 감지 후 다운로드
-            fetch(href, { method: 'HEAD', cache: 'no-store' })
-                .then((res) => {
-                    if (res.ok) {
-                        // 파일 존재 → 실제 다운로드 실행
-                        tryDownload();
-                        showToast('APK 다운로드를 시작합니다.', '📱');
-                    } else {
-                        // 404 등 파일 없음 → 안내 토스트
-                        showToast('APK 파일이 아직 준비되지 않았습니다.', '📱');
-                    }
-                })
-                .catch(() => {
-                    // file:// 프로토콜 등 fetch 제약 환경: 기본 다운로드 동작 그대로 수행
-                    // (파일이 같은 폴더에 있으면 다운로드, 없으면 브라우저가 처리)
-                    tryDownload();
-                    showToast('APK 다운로드를 시도합니다. 파일이 없다면 준비 후 다시 시도해주세요.', '📱');
-                });
-        });
-    }
-
     createParticles();
     setupFormEvents();
     setupDualDatePickers();

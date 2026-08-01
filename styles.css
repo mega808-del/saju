@@ -131,18 +131,6 @@ body {
     background: rgba(241, 196, 15, 0.3);
 }
 
-.apk-download-btn {
-    background: linear-gradient(135deg, #27ae60, #2ecc71);
-    color: #fff;
-    font-size: 0.72rem;
-    font-weight: 800;
-    padding: 4px 10px;
-    border-radius: 16px;
-    text-decoration: none;
-    box-shadow: 0 0 10px rgba(39, 174, 96, 0.4);
-    white-space: nowrap;
-}
-
 /* ═══════════════════════════════════════════
    PINCH ZOOM CONTAINER
    ═══════════════════════════════════════════ */
@@ -355,7 +343,7 @@ body {
     top: 50%;
     transform: translateY(-50%);
     background: var(--bg-card);
-    border: 1.5px solid var(--gold-bright);
+    border: none; /* 노란색 테두리 제거 */
     border-radius: 8px;
     width: 48px; /* 구형 브라우저 폴백 */
     height: 100%; /* 입력칸과 동일한 높이로 맞춰 아래 글자 가림 방지 */
