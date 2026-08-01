@@ -327,8 +327,8 @@ body {
     right: 6px;
     top: 50%;
     transform: translateY(-50%);
-    width: 64px;
-    height: 64px;
+    width: 48px; /* 구형 브라우저 폴백 */
+    height: 100%; /* 입력칸과 동일한 높이로 맞춤 */
     opacity: 0;
     pointer-events: none;
     border: none;
@@ -336,9 +336,16 @@ body {
     margin: 0;
 }
 
+@supports (aspect-ratio: 1 / 1) {
+    .hidden-native-date-picker {
+        width: auto;
+        aspect-ratio: 1 / 1; /* 가로 = 세로 정사각형 (달력 버튼과 동일 크기) */
+    }
+}
+
 .text-date-input {
     flex: 1;
-    padding-right: 78px;
+    padding-right: 66px; /* 정사각형 달력 버튼(입력칸 높이 ≈51px) + 여유 공간 */
     letter-spacing: 0.05em;
 }
 
@@ -350,8 +357,8 @@ body {
     background: var(--bg-card);
     border: 1.5px solid var(--gold-bright);
     border-radius: 8px;
-    width: 64px;
-    height: 64px;
+    width: 48px; /* 구형 브라우저 폴백 */
+    height: 100%; /* 입력칸과 동일한 높이로 맞춰 아래 글자 가림 방지 */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -361,21 +368,30 @@ body {
     z-index: 5;
 }
 
+@supports (aspect-ratio: 1 / 1) {
+    .btn-yellow-cal {
+        width: auto;
+        aspect-ratio: 1 / 1; /* 가로 = 세로 정사각형 (입력칸 높이와 동일한 크기) */
+    }
+}
+
 .yellow-cal-img {
-    width: 60px;
-    height: 60px;
+    height: 80%; /* 버튼(입력칸) 높이의 80%로 비례 축소 */
+    width: auto;
+    max-width: 100%;
+    aspect-ratio: 1 / 1; /* 구형 WebView에서도 비율 유지 */
     display: block;
     pointer-events: none;
 }
 
 .btn-yellow-cal:hover, .btn-yellow-cal:active {
     background: var(--bg-elevated);
-    transform: translateY(-50%) scale(1.1);
+    transform: translateY(-50%) scale(1.03);
     box-shadow: 0 0 15px rgba(241, 196, 15, 0.6);
 }
 
 .btn-yellow-cal:hover .yellow-cal-img {
-    transform: scale(1.08);
+    transform: scale(1.02);
 }
 
 .gender-toggle, .calendar-toggle, .toggle-switch {
