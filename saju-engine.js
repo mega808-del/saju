@@ -77,21 +77,29 @@ function lunarToSolar(lunarYear, lunarMonth, lunarDay, isIntercalation = false) 
     if (typeof KoreanLunarCalendar !== 'undefined') {
         try {
             const cal = new KoreanLunarCalendar();
-            cal.setLunarDate(lunarYear, lunarMonth, lunarDay, isIntercalation);
+            const ok = cal.setLunarDate(lunarYear, lunarMonth, lunarDay, isIntercalation);
+            if (ok === false) {
+                console.warn('Lunar date out of range:', lunarYear, lunarMonth, lunarDay, isIntercalation);
+                return null;
+            }
             const solar = cal.getSolarCalendar();
             return { year: solar.year, month: solar.month, day: solar.day };
         } catch (e) {
             console.warn('Lunar to solar error:', e);
         }
     }
-    return { year: lunarYear, month: lunarMonth, day: lunarDay };
+    return null;
 }
 
 function solarToLunar(solarYear, solarMonth, solarDay) {
     if (typeof KoreanLunarCalendar !== 'undefined') {
         try {
             const cal = new KoreanLunarCalendar();
-            cal.setSolarDate(solarYear, solarMonth, solarDay);
+            const ok = cal.setSolarDate(solarYear, solarMonth, solarDay);
+            if (ok === false) {
+                console.warn('Solar date out of range:', solarYear, solarMonth, solarDay);
+                return null;
+            }
             const lunar = cal.getLunarCalendar();
             return { year: lunar.year, month: lunar.month, day: lunar.day, intercalation: lunar.intercalation };
         } catch (e) {
@@ -674,11 +682,16 @@ function calculateSaju(inputYear, inputMonth, inputDay, hour, gender, calType = 
     let lunarDateInfo = null;
 
     if (calType === 'lunar') {
-        // 음력 -> 양력 변환
+        // 음력 -> 양력 변환 (변환 실패 시 입력값 그대로 사용)
+        if (typeof KoreanLunarCalendar === 'undefined') {
+            console.warn('KoreanLunarCalendar 라이브러리를 불러오지 못했습니다. 음력→양력 변환이 불가능합니다.');
+        }
         const converted = lunarToSolar(inputYear, inputMonth, inputDay);
-        solarYear = converted.year;
-        solarMonth = converted.month;
-        solarDay = converted.day;
+        if (converted) {
+            solarYear = converted.year;
+            solarMonth = converted.month;
+            solarDay = converted.day;
+        }
         lunarDateInfo = { year: inputYear, month: inputMonth, day: inputDay };
     } else {
         // 양력 -> 음력 계산

@@ -1,5 +1,6 @@
 /* ═══════════════════════════════════════════════════
-   이성효의 명리학 - 안드로이드 모바일 UI 스크립트 v4.1 (오류 완전 수정)
+   이성효의 명리학 - 안드로이드 모바일 UI 스크립트 v4.2
+   (직접 텍스트 타이핑 + 노란색 달력 버튼 듀얼 기능)
    ═══════════════════════════════════════════════════ */
 
 const $ = (s, p = document) => p.querySelector(s);
@@ -18,7 +19,7 @@ let selectedHour2 = '';
 let _lastResult = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Initialize Pinch Zoom Engine
+    // Initialize Pinch Zoom Engine
     const pinchEngine = new window.PinchZoomEngine('#pinchContainer', {
         minScale: 0.8,
         maxScale: 3.5
@@ -33,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     createParticles();
     setupFormEvents();
+    setupDualDatePickers();
     checkSavedData();
 });
 
@@ -51,9 +53,60 @@ function createParticles() {
     }
 }
 
+/* ═══════════════════════════════════════════
+   생년월일 직접입력 & 노란색 달력 버튼 듀얼 연동
+   ═══════════════════════════════════════════ */
+
+function setupDualDatePickers() {
+    setupSingleDualPicker('#birthDateInput', '#btnOpenCalPicker', '#birthDateHidden');
+    setupSingleDualPicker('#birthDateInput2', '#btnOpenCalPicker2', '#birthDateHidden2');
+}
+
+function setupSingleDualPicker(textInputSel, btnCalSel, hiddenPickerSel) {
+    const textInput = $(textInputSel);
+    const btnCal = $(btnCalSel);
+    const hiddenPicker = $(hiddenPickerSel);
+
+    if (!textInput || !hiddenPicker) return;
+
+    // 1. Direct Typing Auto Formatting (e.g. 19950515 -> 1995-05-15)
+    textInput.addEventListener('input', (e) => {
+        let val = e.target.value.replace(/[^0-9]/g, '');
+        if (val.length >= 8) {
+            val = val.substring(0, 8);
+            const formatted = `${val.substring(0, 4)}-${val.substring(4, 6)}-${val.substring(6, 8)}`;
+            textInput.value = formatted;
+            hiddenPicker.value = formatted;
+        }
+    });
+
+    // 2. Yellow Calendar Button Click Handler
+    if (btnCal) {
+        btnCal.addEventListener('click', () => {
+            try {
+                if (hiddenPicker.showPicker) {
+                    hiddenPicker.showPicker();
+                } else {
+                    hiddenPicker.focus();
+                    hiddenPicker.click();
+                }
+            } catch (err) {
+                hiddenPicker.focus();
+                hiddenPicker.click();
+            }
+        });
+    }
+
+    // 3. Hidden Date Picker Selection Sync
+    hiddenPicker.addEventListener('change', () => {
+        if (hiddenPicker.value) {
+            textInput.value = hiddenPicker.value;
+        }
+    });
+}
+
 function setupFormEvents() {
     const form = $('#fortuneForm');
-    const birthInput = $('#birthDate');
 
     // Calendar Toggle
     $('#calendarToggle').addEventListener('click', (e) => {
@@ -64,7 +117,7 @@ function setupFormEvents() {
         selectedCal = btn.dataset.cal;
         const calHint = $('#calHint');
         if (calHint) {
-            calHint.textContent = selectedCal === 'solar' ? '※ 양력 기준으로 입력해주세요 (예: 1995-05-15)' : '※ 음력 기준으로 입력해주세요 (동일 사주로 양력 자동 변환)';
+            calHint.textContent = selectedCal === 'solar' ? '※ 직접 타이핑(예: 19950515) 또는 달력 이미지 클릭 선택' : '※ 음력 생년월일 입력 (동일 사주로 양력 자동 변환)';
         }
     });
 
@@ -125,12 +178,17 @@ function setupFormEvents() {
     form.addEventListener('submit', (e) => {
         e.preventDefault();
         const name = $('#userName').value.trim();
-        if (!name) { showToast('이름을 입력해주세요.', '⚠️'); return; }
-        if (!birthInput.value) { showToast('생년월일을 선택 혹은 입력해주세요.', '⚠️'); return; }
+        const birthVal = $('#birthDateInput').value.trim();
 
-        const [y, m, d] = birthInput.value.split('-').map(Number);
+        if (!name) { showToast('이름을 입력해주세요.', '⚠️'); return; }
+        if (!birthVal || birthVal.length < 10) { showToast('생년월일을 YYYY-MM-DD (예: 19950515) 형식으로 입력 혹은 달력에서 선택해주세요.', '⚠️'); return; }
+
+        const [y, m, d] = birthVal.split('-').map(Number);
 
         // 1. Calculate Saju (Lunar to Solar converted automatically inside calculateSaju if selectedCal === 'lunar')
+        if (selectedCal === 'lunar' && typeof KoreanLunarCalendar === 'undefined') {
+            showToast('음력 변환 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인해주세요.', '⚠️');
+        }
         const result = window.calculateSaju(y, m, d, selectedHour, selectedGender, selectedCal);
         _lastResult = { name, year: y, month: m, day: d, gender: selectedGender, cal: selectedCal, hour: selectedHour, result };
 
@@ -139,8 +197,8 @@ function setupFormEvents() {
         // 2. Compatibility Mode if enabled
         if (isCompatibilityMode) {
             const name2 = $('#userName2').value.trim();
-            const birth2 = $('#birthDate2').value;
-            if (name2 && birth2) {
+            const birth2 = $('#birthDateInput2').value.trim();
+            if (name2 && birth2 && birth2.length >= 10) {
                 const [y2, m2, d2] = birth2.split('-').map(Number);
                 const result2 = window.calculateSaju(y2, m2, d2, selectedHour2, selectedGender2, selectedCal);
                 const compat = window.calculateCompatibility(result, result2);
@@ -380,7 +438,7 @@ function renderExtraAnalysis(result) {
     $('#extraAnalysisSection').innerHTML = html;
 }
 
-/* ─── 궁합 표시 (원본 100% 동일 복원) ─── */
+/* ─── 궁합 표시 ─── */
 function renderCompatibility(name1, result1, name2, result2, compat) {
     const container = $('#compatResultContainer');
     const section = $('#compatResultSection');
@@ -557,5 +615,10 @@ function loadSavedData() {
     if (!raw) return;
     const data = JSON.parse(raw);
     $('#userName').value = data.name || '';
+    if (data.year && data.month && data.day) {
+        const formatted = `${data.year}-${String(data.month).padStart(2, '0')}-${String(data.day).padStart(2, '0')}`;
+        $('#birthDateInput').value = formatted;
+        $('#birthDateHidden').value = formatted;
+    }
     showToast(`${data.name}님의 저장된 정보를 불러왔습니다.`, '📂');
 }
