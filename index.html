@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes" />
-    <title>이성효의 명리학 - 안드로이드 모바일 사주팔자 v3.0</title>
+    <title>이성효의 명리학 - 사주팔자 운세</title>
     <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#0a0a1a" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="stylesheet" href="styles.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700;900&family=Noto+Sans+KR:wght@300;400;500;600;700;800&family=Nanum+Myeongjo:wght@400;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700;900&family=Noto+Sans+KR:wght@300;400;500;600;700;800&family=Nanum+Myeongjo:wght@400;700;800&display=swap" rel="stylesheet" />
 </head>
 <body>
 
@@ -51,8 +49,7 @@
                         <span class="logo-badge-icon">☯</span>
                     </div>
                     <h1 class="form-title">이성효의 명리학</h1>
-                    <p class="form-subtitle">안드로이드 모바일 사주팔자 운세 v3.0</p>
-                    <div class="mobile-pinch-hint">💡 손가락 두 개로 확대/축소(Pinch Zoom) 및 드래그가 가능합니다</div>
+                    <p class="form-subtitle">사주팔자로 알아보는 나의 운명</p>
                     <div class="title-underline"></div>
                 </div>
 
@@ -64,14 +61,19 @@
                             <span class="label-icon">👤</span> 이름
                         </label>
                         <input type="text" id="userName" class="form-input" placeholder="이름을 입력하세요" maxlength="20" required />
+                        <div class="input-glow"></div>
                     </div>
 
                     <!-- Gender -->
                     <div class="form-group">
                         <label class="form-label"><span class="label-icon">⚤</span> 성별</label>
                         <div class="gender-toggle" id="genderToggle">
-                            <button type="button" class="gender-btn active" data-gender="male">♂ 남자</button>
-                            <button type="button" class="gender-btn" data-gender="female">♀ 여자</button>
+                            <button type="button" class="gender-btn active" data-gender="male">
+                                <span class="gender-icon">♂</span><span>남자</span>
+                            </button>
+                            <button type="button" class="gender-btn" data-gender="female">
+                                <span class="gender-icon">♀</span><span>여자</span>
+                            </button>
                         </div>
                     </div>
 
@@ -84,11 +86,15 @@
                         </div>
                     </div>
 
-                    <!-- Birth Date -->
+                    <!-- Birth Date (Calendar Picker + Direct Text Typing Dual Support) -->
                     <div class="form-group">
-                        <label class="form-label" for="birthDate"><span class="label-icon">🎂</span> 생년월일</label>
-                        <input type="date" id="birthDate" class="form-input date-input" min="1920-01-01" max="2035-12-31" required />
-                        <p class="form-hint" id="calHint">※ 양력 기준으로 입력해주세요</p>
+                        <label class="form-label" for="birthDate">
+                            <span class="label-icon">🎂</span> 생년월일 (달력선택 또는 직접입력)
+                        </label>
+                        <div class="date-input-wrapper">
+                            <input type="date" id="birthDate" class="form-input date-input" min="1900-01-01" max="2035-12-31" required />
+                        </div>
+                        <p class="form-hint" id="calHint">※ 양력 기준으로 입력해주세요 (예: 1995-05-15)</p>
                     </div>
 
                     <!-- Birth Time -->
@@ -97,27 +103,27 @@
                             <span class="label-icon">🕐</span> 태어난 시간 <span class="label-optional">(선택)</span>
                         </label>
                         <div class="time-grid" id="timeGrid">
-                            <button type="button" class="time-btn" data-hour="0">23-01시(자시)</button>
-                            <button type="button" class="time-btn" data-hour="2">01-03시(축시)</button>
-                            <button type="button" class="time-btn" data-hour="4">03-05시(인시)</button>
-                            <button type="button" class="time-btn" data-hour="6">05-07시(묘시)</button>
-                            <button type="button" class="time-btn" data-hour="8">07-09시(진시)</button>
-                            <button type="button" class="time-btn" data-hour="10">09-11시(사시)</button>
-                            <button type="button" class="time-btn" data-hour="12">11-13시(오시)</button>
-                            <button type="button" class="time-btn" data-hour="14">13-15시(미시)</button>
-                            <button type="button" class="time-btn" data-hour="16">15-17시(신시)</button>
-                            <button type="button" class="time-btn" data-hour="18">17-19시(유시)</button>
-                            <button type="button" class="time-btn" data-hour="20">19-21시(술시)</button>
-                            <button type="button" class="time-btn" data-hour="22">21-23시(해시)</button>
-                            <button type="button" class="time-btn time-btn-none active" data-hour="">시간 모름</button>
+                            <button type="button" class="time-btn" data-hour="0"><span class="time-period">23-01</span><span class="time-name">자시</span></button>
+                            <button type="button" class="time-btn" data-hour="2"><span class="time-period">01-03</span><span class="time-name">축시</span></button>
+                            <button type="button" class="time-btn" data-hour="4"><span class="time-period">03-05</span><span class="time-name">인시</span></button>
+                            <button type="button" class="time-btn" data-hour="6"><span class="time-period">05-07</span><span class="time-name">묘시</span></button>
+                            <button type="button" class="time-btn" data-hour="8"><span class="time-period">07-09</span><span class="time-name">진시</span></button>
+                            <button type="button" class="time-btn" data-hour="10"><span class="time-period">09-11</span><span class="time-name">사시</span></button>
+                            <button type="button" class="time-btn" data-hour="12"><span class="time-period">11-13</span><span class="time-name">오시</span></button>
+                            <button type="button" class="time-btn" data-hour="14"><span class="time-period">13-15</span><span class="time-name">미시</span></button>
+                            <button type="button" class="time-btn" data-hour="16"><span class="time-period">15-17</span><span class="time-name">신시</span></button>
+                            <button type="button" class="time-btn" data-hour="18"><span class="time-period">17-19</span><span class="time-name">유시</span></button>
+                            <button type="button" class="time-btn" data-hour="20"><span class="time-period">19-21</span><span class="time-name">술시</span></button>
+                            <button type="button" class="time-btn" data-hour="22"><span class="time-period">21-23</span><span class="time-name">해시</span></button>
+                            <button type="button" class="time-btn time-btn-none active" data-hour=""><span class="time-name">시간 모름</span></button>
                         </div>
                     </div>
 
                     <!-- 궁합 모드 토글 -->
                     <div class="compatibility-toggle-wrap">
                         <div class="toggle-switch" id="compatModeToggle">
-                            <button type="button" class="toggle-btn active" data-mode="single">👤 개인 사주 운세</button>
-                            <button type="button" class="toggle-btn" data-mode="couple">💑 두 사람 궁합 보기</button>
+                            <button type="button" class="toggle-btn active" data-mode="single">👤 개인 운세</button>
+                            <button type="button" class="toggle-btn" data-mode="couple">💑 궁합 보기</button>
                         </div>
                     </div>
 
@@ -129,36 +135,38 @@
                             <span class="divider-line"></span>
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="userName2">👤 상대방 이름</label>
-                            <input type="text" id="userName2" class="form-input" placeholder="상대방 이름 입력" maxlength="20" />
+                            <label class="form-label" for="userName2"><span class="label-icon">👤</span> 이름</label>
+                            <input type="text" id="userName2" class="form-input" placeholder="상대방 이름을 입력하세요" maxlength="20" />
                         </div>
                         <div class="form-group">
-                            <label class="form-label">⚤ 상대방 성별</label>
+                            <label class="form-label"><span class="label-icon">⚤</span> 성별</label>
                             <div class="gender-toggle" id="genderToggle2">
-                                <button type="button" class="gender-btn active" data-gender="male">♂ 남자</button>
-                                <button type="button" class="gender-btn" data-gender="female">♀ 여자</button>
+                                <button type="button" class="gender-btn active" data-gender="male"><span class="gender-icon">♂</span><span>남자</span></button>
+                                <button type="button" class="gender-btn" data-gender="female"><span class="gender-icon">♀</span><span>여자</span></button>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="birthDate2">🎂 상대방 생년월일</label>
-                            <input type="date" id="birthDate2" class="form-input date-input" min="1920-01-01" max="2035-12-31" />
+                            <label class="form-label" for="birthDate2">🎂 생년월일</label>
+                            <div class="date-input-wrapper">
+                                <input type="date" id="birthDate2" class="form-input date-input" min="1900-01-01" max="2035-12-31" />
+                            </div>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">🕐 상대방 태어난 시간</label>
+                            <label class="form-label"><span class="label-icon">🕐</span> 태어난 시간 <span class="label-optional">(선택)</span></label>
                             <div class="time-grid" id="timeGrid2">
-                                <button type="button" class="time-btn active" data-hour="">시간 모름</button>
-                                <button type="button" class="time-btn" data-hour="0">자시(23-01)</button>
-                                <button type="button" class="time-btn" data-hour="2">축시(01-03)</button>
-                                <button type="button" class="time-btn" data-hour="4">인시(03-05)</button>
-                                <button type="button" class="time-btn" data-hour="6">묘시(05-07)</button>
-                                <button type="button" class="time-btn" data-hour="8">진시(07-09)</button>
-                                <button type="button" class="time-btn" data-hour="10">사시(09-11)</button>
-                                <button type="button" class="time-btn" data-hour="12">오시(11-13)</button>
-                                <button type="button" class="time-btn" data-hour="14">미시(13-15)</button>
-                                <button type="button" class="time-btn" data-hour="16">신시(15-17)</button>
-                                <button type="button" class="time-btn" data-hour="18">유시(17-19)</button>
-                                <button type="button" class="time-btn" data-hour="20">술시(19-21)</button>
-                                <button type="button" class="time-btn" data-hour="22">해시(21-23)</button>
+                                <button type="button" class="time-btn active" data-hour=""><span class="time-name">시간 모름</span></button>
+                                <button type="button" class="time-btn" data-hour="0"><span class="time-name">자시(23-01)</span></button>
+                                <button type="button" class="time-btn" data-hour="2"><span class="time-name">축시(01-03)</span></button>
+                                <button type="button" class="time-btn" data-hour="4"><span class="time-name">인시(03-05)</span></button>
+                                <button type="button" class="time-btn" data-hour="6"><span class="time-name">묘시(05-07)</span></button>
+                                <button type="button" class="time-btn" data-hour="8"><span class="time-name">진시(07-09)</span></button>
+                                <button type="button" class="time-btn" data-hour="10"><span class="time-name">사시(09-11)</span></button>
+                                <button type="button" class="time-btn" data-hour="12"><span class="time-name">오시(11-13)</span></button>
+                                <button type="button" class="time-btn" data-hour="14"><span class="time-name">미시(13-15)</span></button>
+                                <button type="button" class="time-btn" data-hour="16"><span class="time-name">신시(15-17)</span></button>
+                                <button type="button" class="time-btn" data-hour="18"><span class="time-name">유시(17-19)</span></button>
+                                <button type="button" class="time-btn" data-hour="20"><span class="time-name">술시(19-21)</span></button>
+                                <button type="button" class="time-btn" data-hour="22"><span class="time-name">해시(21-23)</span></button>
                             </div>
                         </div>
                     </div>
@@ -166,21 +174,21 @@
                     <!-- Submit -->
                     <div class="form-submit-group">
                         <button type="submit" class="btn-submit" id="btnSubmit">
-                            <span class="btn-submit-text">🔮 사주팔자 정밀 운세 분석</span>
+                            <span class="btn-submit-text">🔮 운세 보기</span>
                         </button>
                     </div>
 
-                    <!-- Saved data link -->
+                    <!-- Saved Data Link -->
                     <div class="saved-data-link" id="savedDataLink" style="display:none;">
                         <button type="button" class="btn-saved" id="btnLoadSaved">📂 저장된 운세 불러오기</button>
                     </div>
 
-                    <p class="form-footer-note">※ 본 프로그램은 5단계 정밀 심화 명리학 데이터베이스로 연산됩니다.</p>
+                    <p class="form-footer-note">※ 사주명리학은 통계에 기반한 참고 문화입니다. 맹신하지 말아주세요.</p>
                 </form>
             </div>
         </section>
 
-        <!-- ═══════════════ Result Section ═══════════════ -->
+        <!-- ═══════════════ Result Section (순서 엄격 정렬) ═══════════════ -->
         <section class="section result-section" id="resultSection" style="display:none;">
             <div class="result-container">
                 <!-- Actions -->
@@ -208,94 +216,88 @@
                     </div>
                 </div>
 
-                <!-- 1. Saju Pillars -->
+                <!-- 1. 사주팔자 (Pillars) -->
                 <div class="section-label reveal">
                     <span class="label-line"></span>
-                    <span class="label-text">사주팔자 (四柱八字)</span>
+                    <span class="label-text">사주팔자</span>
                     <span class="label-line"></span>
                 </div>
                 <div class="saju-pillars" id="sajuPillars"></div>
 
-                <!-- 2. Yongshin & Strength & Gyeokguk -->
+                <!-- 2. 신강/신약, 용신, 희신, 격국 분석 -->
                 <div class="section-label reveal">
                     <span class="label-line"></span>
-                    <span class="label-text">신강·신약 / 용신 / 격국 분석</span>
+                    <span class="label-text">용신 및 격국 분석</span>
                     <span class="label-line"></span>
                 </div>
                 <div class="yongshin-section" id="yongshinSection"></div>
 
-                <!-- 3. 12-Wunseong Analysis -->
+                <!-- 3. 대운 (Daewoon) -->
                 <div class="section-label reveal">
                     <span class="label-line"></span>
-                    <span class="label-text">12운성 (十二運星) 분석</span>
-                    <span class="label-line"></span>
-                </div>
-                <div class="wunseong-section" id="wunseongSection"></div>
-
-                <!-- 4. 12-Sinsal & Special Sinsals -->
-                <div class="section-label reveal">
-                    <span class="label-line"></span>
-                    <span class="label-text">12신살 & 주요 특수 길흉신살</span>
-                    <span class="label-line"></span>
-                </div>
-                <div class="sinsal-section" id="sinsalSection"></div>
-
-                <!-- 5. Hyeong-Chung-Pa-Hae & Hap Matrix -->
-                <div class="section-label reveal">
-                    <span class="label-line"></span>
-                    <span class="label-text">형·충·파·해·합 심화 명리 분석</span>
-                    <span class="label-line"></span>
-                </div>
-                <div class="relations-section" id="relationsSection"></div>
-
-                <!-- 6. Daewoon -->
-                <div class="section-label reveal">
-                    <span class="label-line"></span>
-                    <span class="label-text">대운 (大運) 흐름</span>
+                    <span class="label-text">대운</span>
                     <span class="label-line"></span>
                 </div>
                 <div class="daewoon-section" id="daewoonSection"></div>
 
-                <!-- 7. Ohaeng Analysis -->
+                <!-- 4. 오행 분석 (Ohaeng) -->
                 <div class="section-label reveal">
                     <span class="label-line"></span>
-                    <span class="label-text">오행 분포 및 균형 조언</span>
+                    <span class="label-text">오행 분석</span>
                     <span class="label-line"></span>
                 </div>
                 <div class="ohaeng-section" id="ohaengSection"></div>
 
-                <!-- 8. Character & Personality -->
+                <!-- 5. 십성 분석 (Sipseong) -->
                 <div class="section-label reveal">
                     <span class="label-line"></span>
-                    <span class="label-text">성격 및 운명적 특성</span>
+                    <span class="label-text">십성 분석</span>
+                    <span class="label-line"></span>
+                </div>
+                <div class="sipseong-section" id="sipseongSection"></div>
+
+                <!-- 6. 성격 및 특성 (Character) -->
+                <div class="section-label reveal">
+                    <span class="label-line"></span>
+                    <span class="label-text">성격 및 특성</span>
                     <span class="label-line"></span>
                 </div>
                 <div class="character-card reveal" id="characterCard"></div>
 
-                <!-- 9. Compatibility Analysis (궁합) -->
+                <!-- 7. 12운성 & 12신살 & 형충파해 심화 -->
+                <div class="section-label reveal">
+                    <span class="label-line"></span>
+                    <span class="label-text">12운성 · 12신살 · 형충파해</span>
+                    <span class="label-line"></span>
+                </div>
+                <div class="extra-analysis-section" id="extraAnalysisSection"></div>
+
+                <!-- 8. 궁합 분석 (Compatibility Result Section) -->
                 <div id="compatResultContainer" style="display:none;">
                     <div class="section-label reveal">
                         <span class="label-line"></span>
-                        <span class="label-text">두 사람 정밀 궁합 분석</span>
+                        <span class="label-text">궁합 분석</span>
                         <span class="label-line"></span>
                     </div>
                     <div class="compatibility-section" id="compatResultSection"></div>
                 </div>
 
-                <!-- 10. Yearly Fortune -->
+                <!-- 9. 연도별 운세 (15년 운세 + 상단 15년 클릭 버튼 탭) -->
                 <div class="section-label reveal">
                     <span class="label-line"></span>
-                    <span class="label-text">연도별 세운 (歲運) 상세 예측</span>
+                    <span class="label-text">연도별 운세</span>
                     <span class="label-line"></span>
                 </div>
+
+                <!-- Year Nav Buttons (15년 표시 및 클릭시 최상단 배치) -->
                 <div class="year-nav" id="yearNav"></div>
                 <div class="yearly-fortune" id="yearlyFortune"></div>
 
                 <!-- Footer -->
                 <div class="result-footer">
                     <div class="footer-divider"><span class="footer-diamond">◇</span></div>
-                    <p class="footer-text">이성효의 명리학 · 안드로이드 모바일 사주팔자 v3.0</p>
-                    <p class="footer-copy">© 2026 이성효의 명리학 All Rights Reserved</p>
+                    <p class="footer-text">이성효의 명리학 · 사주팔자는 참고용입니다</p>
+                    <p class="footer-copy">© 2026 이성효의 명리학</p>
                 </div>
             </div>
         </section>
