@@ -1,0 +1,26 @@
+{
+  "source": "lee-saju-engine v5.2 (buildFortuneJSON 추출 - 야자시분일 적용)",
+  "case": "CASE3: 1988-06-01 23:30 남성 양력 (야자시·서머타임 테스트)",
+  "input": { "year": 1988, "month": 6, "day": 1, "hour": "23", "gender": "male", "calType": "solar", "isIntercalation": false },
+  "saju": {
+    "pillars8": ["戊辰", "丁巳", "戊子", "壬子"],
+    "yearPillar": "戊辰", "monthPillar": "丁巳", "dayPillar": "戊子", "hourPillar": "壬子",
+    "dayGan": "戊"
+  },
+  "daewoon": { "start_age": 1, "direction": "순행", "count": 8 },
+  "ohaeng": { "wood": 0, "fire": 2, "earth": 3, "metal": 0, "water": 3 },
+  "sipseong": { "year": "비견", "month": "정인", "day": "비견", "hour": "편재" },
+  "yongshin": { "strength": "신강(身強) 사주", "yongshin": "水 (수)", "heeshin": "金 (금)", "gyeokguk": "건록격(建禄格)" },
+  "text": {
+    "yongshinDescLen": 141,
+    "characterLen": 673, "daewoonDescs": 8, "daewoonAvgLen": 130,
+    "wunseongMeanings": 4, "sinsalMeanings": 4,
+    "yearlyCount": 15, "yearlyAvgLen": 186,
+    "sipseongDetail": 5, "ohaengAdvice": 1,
+    "gyeokgukDesc": 1,
+    "hyeongchungDesc": 1, "yukchinDesc": 1,
+    "sinsal12": 12,
+    "yearlyWealth": 15, "yearlyLove": 15, "yearlyHealth": 15, "yearlyCareer": 15,
+    "yearlyAcademic": 15, "yearlyMoney": 15, "yearlyLuck": 15
+  }
+}

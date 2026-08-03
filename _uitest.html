@@ -3,13 +3,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes" />
-    <title>이성효의 명리학 - 안드로이드 모바일 사주팔자 v3.0</title>
-<meta property="og:title" content="이성효의 명리학 - 안드로이드 모바일 사주팔자 v3.0" />
-
-    <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#0a0a1a" />
+    <title>UI-TEST</title>
     <link rel="stylesheet" href="styles.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700;900&family=Noto+Sans+KR:wght@300;400;500;600;700;800&family=Nanum+Myeongjo:wght@400;700;800&display=swap" rel="stylesheet" />
 </head>
 <body>
 
@@ -87,7 +82,7 @@
                         </div>
                     </div>
 
-                    <!-- Lunar Intercalation (윤달) - 음력 모드에서만 표시 -->
+                    <!-- Lunar Intercalation (윤달) -->
                     <div class="form-group" id="intercalationGroup" style="display:none;">
                         <label class="form-label"><span class="label-icon">🌓</span> 음력 윤달 (윤월)</label>
                         <label class="lunar-leap-check">
@@ -96,24 +91,14 @@
                         </label>
                     </div>
 
-                    <!-- Birth Date (직접 텍스트 타이핑 + 실제 탁상달력 이미지 버튼 듀얼 지원) -->
+                    <!-- Birth Date -->
                     <div class="form-group">
                         <label class="form-label" for="birthDateInput">
                             <span class="label-icon">🎂</span> 생년월일 (직접 입력 또는 달력 선택)
                         </label>
                         <div class="date-dual-wrapper">
                             <input type="text" id="birthDateInput" class="form-input text-date-input" placeholder="YYYY-MM-DD (예: 19950515)" maxlength="10" required />
-                            <button type="button" class="btn-yellow-cal" id="btnOpenCalPicker" title="달력으로 생년월일 선택">
-                                <svg class="yellow-cal-img" viewBox="0 0 36 36" width="60" height="60" role="img" aria-label="달력으로 생년월일 선택">
-                                    <path fill="#292F33" d="M35 32c0 2.209-1.791 4-4 4H5c-2.209 0-4-1.791-4-4V8c0-2.209 1.791-4 4-4h26c2.209 0 4 1.791 4 4v24z"/>
-                                    <path fill="#E1E8ED" d="M33 32c0 1.104-.896 2-2 2H5c-1.104 0-2-.896-2-2V12c0-1.104.896-2 2-2h26c1.104 0 2 .896 2 2v20z"/>
-                                    <path d="M23.115 20.484H17.91c-1.098 0-1.504-.712-1.504-1.403 0-.712.386-1.403 1.504-1.403h7.362c1.038 0 1.464.935 1.464 1.464 0 .407-.224.834-.468 1.342l-5.043 10.25c-.569 1.139-.793 1.545-1.708 1.545-1.119 0-1.688-.854-1.688-1.444 0-.244.061-.427.204-.712l5.082-9.639zm-11.485-.108h-.45c-.976 0-1.383-.658-1.383-1.349 0-.712.509-1.349 1.383-1.349h1.813c.874 0 1.362.631 1.362 1.444v11.572c0 1.016-.502 1.586-1.376 1.586s-1.349-.569-1.349-1.586V20.376z" fill="#66757F"/>
-                                    <path fill="#DD2E44" d="M33 16H3V8c0-1.104.896-2 2-2h26c1.104 0 2 .896 2 2v8z"/>
-                                    <path d="M15.26 9.604c0-.5.3-.78.702-.78.402 0 .701.28.701.78v4.017h1.665c.477 0 .682.38.672.72-.018.33-.261.659-.672.659H15.99c-.458 0-.73-.319-.73-.819V9.604zm-6.465 0c0-.5.299-.78.702-.78.402 0 .701.28.701.78v2.488c0 .92.552 1.649 1.44 1.649.85 0 1.43-.769 1.43-1.649V9.604c0-.5.299-.78.702-.78.402 0 .701.28.701.78v2.568c0 1.679-1.291 2.949-2.833 2.949-1.561 0-2.843-1.25-2.843-2.949V9.604zm-.731 3.397c0 1.679-1 2.119-1.851 2.119-.645 0-1.721-.27-1.721-1.14 0-.269.216-.609.524-.609.374 0 .702.37 1.122.37.524 0 .524-.52.524-.84V9.604c0-.5.298-.78.7-.78.403 0 .702.28.702.78v3.397z" fill="#F5F8FA"/>
-                                    <path d="M30 14c0 .552.447 1 1 1s1-.448 1-1-.447-1-1-1-1 .448-1 1zm-3 0c0 .552.447 1 1 1s1-.448 1-1-.447-1-1-1-1 .448-1 1zm-3 0c0 .552.447 1 1 1s1-.448 1-1-.447-1-1-1-1 .448-1 1zm0-3c0 .552.447 1 1 1s1-.448 1-1-.447-1-1-1-1 .448-1 1zm3 0c0 .552.447 1 1 1s1-.448 1-1-.447-1-1-1-1 .448-1 1zm3 0c0 .552.447 1 1 1s1-.448 1-1-.447-1-1-1-1 .448-1 1" fill="#F4ABBA"/>
-                                    <path d="M11 7c0 .552-.448 1-1 1s-1-.448-1-1V1c0-.552.448-1 1-1s1 .448 1 1v6zm16 0c0 .552-.447 1-1 1s-1-.448-1-1V1c0-.552.447-1 1-1s1 .448 1 1v6z" fill="#99AAB5"/>
-                                </svg>
-                            </button>
+                            <button type="button" class="btn-yellow-cal" id="btnOpenCalPicker" title="달력으로 생년월일 선택">📅</button>
                             <input type="date" id="birthDateHidden" class="hidden-native-date-picker" min="1900-01-01" max="2035-12-31" />
                         </div>
                         <p class="form-hint" id="calHint">※ 직접 타이핑(예: 19950515) 또는 달력 이미지 클릭 선택</p>
@@ -139,15 +124,6 @@
                             <button type="button" class="time-btn" data-hour="22"><span class="time-period">21-23</span><span class="time-name">해시</span></button>
                             <button type="button" class="time-btn time-btn-none active" data-hour=""><span class="time-name">시간 모름</span></button>
                         </div>
-                        <!-- ★ v5.2: 자시 기준 선택 (야자시분일 기본 - 표준 만세력과 동일) -->
-                        <div class="jasi-toggle-row" style="margin-top:10px;">
-                            <span class="jasi-toggle-label">🌙 자시 기준</span>
-                            <div class="calendar-toggle" id="jasiToggle">
-                                <button type="button" class="cal-btn active" data-jasi="yajasi">야자시분일</button>
-                                <button type="button" class="cal-btn" data-jasi="midnight">자정분일</button>
-                            </div>
-                        </div>
-                        <p class="form-hint">※ 야자시분일: 23시~24시 출생은 다음날 일주로 계산 (표준 만세력과 동일)</p>
                     </div>
 
                     <!-- 궁합 모드 토글 -->
@@ -180,17 +156,7 @@
                             <label class="form-label" for="birthDateInput2">🎂 생년월일 (직접 입력 또는 달력 선택)</label>
                             <div class="date-dual-wrapper">
                                 <input type="text" id="birthDateInput2" class="form-input text-date-input" placeholder="YYYY-MM-DD (예: 19950515)" maxlength="10" />
-                                <button type="button" class="btn-yellow-cal" id="btnOpenCalPicker2" title="달력으로 생년월일 선택">
-                                    <svg class="yellow-cal-img" viewBox="0 0 36 36" width="60" height="60" role="img" aria-label="달력으로 생년월일 선택">
-                                        <path fill="#292F33" d="M35 32c0 2.209-1.791 4-4 4H5c-2.209 0-4-1.791-4-4V8c0-2.209 1.791-4 4-4h26c2.209 0 4 1.791 4 4v24z"/>
-                                        <path fill="#E1E8ED" d="M33 32c0 1.104-.896 2-2 2H5c-1.104 0-2-.896-2-2V12c0-1.104.896-2 2-2h26c1.104 0 2 .896 2 2v20z"/>
-                                        <path d="M23.115 20.484H17.91c-1.098 0-1.504-.712-1.504-1.403 0-.712.386-1.403 1.504-1.403h7.362c1.038 0 1.464.935 1.464 1.464 0 .407-.224.834-.468 1.342l-5.043 10.25c-.569 1.139-.793 1.545-1.708 1.545-1.119 0-1.688-.854-1.688-1.444 0-.244.061-.427.204-.712l5.082-9.639zm-11.485-.108h-.45c-.976 0-1.383-.658-1.383-1.349 0-.712.509-1.349 1.383-1.349h1.813c.874 0 1.362.631 1.362 1.444v11.572c0 1.016-.502 1.586-1.376 1.586s-1.349-.569-1.349-1.586V20.376z" fill="#66757F"/>
-                                        <path fill="#DD2E44" d="M33 16H3V8c0-1.104.896-2 2-2h26c1.104 0 2 .896 2 2v8z"/>
-                                        <path d="M15.26 9.604c0-.5.3-.78.702-.78.402 0 .701.28.701.78v4.017h1.665c.477 0 .682.38.672.72-.018.33-.261.659-.672.659H15.99c-.458 0-.73-.319-.73-.819V9.604zm-6.465 0c0-.5.299-.78.702-.78.402 0 .701.28.701.78v2.488c0 .92.552 1.649 1.44 1.649.85 0 1.43-.769 1.43-1.649V9.604c0-.5.299-.78.702-.78.402 0 .701.28.701.78v2.568c0 1.679-1.291 2.949-2.833 2.949-1.561 0-2.843-1.25-2.843-2.949V9.604zm-.731 3.397c0 1.679-1 2.119-1.851 2.119-.645 0-1.721-.27-1.721-1.14 0-.269.216-.609.524-.609.374 0 .702.37 1.122.37.524 0 .524-.52.524-.84V9.604c0-.5.298-.78.7-.78.403 0 .702.28.702.78v3.397z" fill="#F5F8FA"/>
-                                        <path d="M30 14c0 .552.447 1 1 1s1-.448 1-1-.447-1-1-1-1 .448-1 1zm-3 0c0 .552.447 1 1 1s1-.448 1-1-.447-1-1-1-1 .448-1 1zm-3 0c0 .552.447 1 1 1s1-.448 1-1-.447-1-1-1-1 .448-1 1zm0-3c0 .552.447 1 1 1s1-.448 1-1-.447-1-1-1-1 .448-1 1zm3 0c0 .552.447 1 1 1s1-.448 1-1-.447-1-1-1-1 .448-1 1zm3 0c0 .552.447 1 1 1s1-.448 1-1-.447-1-1-1-1 .448-1 1" fill="#F4ABBA"/>
-                                        <path d="M11 7c0 .552-.448 1-1 1s-1-.448-1-1V1c0-.552.448-1 1-1s1 .448 1 1v6zm16 0c0 .552-.447 1-1 1s-1-.448-1-1V1c0-.552.447-1 1-1s1 .448 1 1v6z" fill="#99AAB5"/>
-                                    </svg>
-                                </button>
+                                <button type="button" class="btn-yellow-cal" id="btnOpenCalPicker2" title="달력으로 생년월일 선택">📅</button>
                                 <input type="date" id="birthDateHidden2" class="hidden-native-date-picker" min="1900-01-01" max="2035-12-31" />
                             </div>
                         </div>
@@ -238,10 +204,9 @@
             </div>
         </section>
 
-        <!-- ═══════════════ Result Section (순서 엄격 정렬) ═══════════════ -->
+        <!-- ═══════════════ Result Section ═══════════════ -->
         <section class="section result-section" id="resultSection" style="display:none;">
             <div class="result-container">
-                <!-- Actions -->
                 <div class="result-actions">
                     <button class="btn-back" id="btnBack">← 다시 입력하기</button>
                     <div class="result-actions-right">
@@ -250,7 +215,6 @@
                     </div>
                 </div>
 
-                <!-- Profile Card -->
                 <div class="profile-card" id="profileCard">
                     <div class="profile-badge">
                         <span class="profile-initials" id="profileInitials">이</span>
@@ -266,7 +230,6 @@
                     </div>
                 </div>
 
-                <!-- 1. 사주팔자 (Pillars) -->
                 <div class="section-label reveal">
                     <span class="label-line"></span>
                     <span class="label-text">사주팔자</span>
@@ -274,7 +237,6 @@
                 </div>
                 <div class="saju-pillars" id="sajuPillars"></div>
 
-                <!-- 2. 신강/신약, 용신, 희신, 격국 분석 -->
                 <div class="section-label reveal">
                     <span class="label-line"></span>
                     <span class="label-text">용신 및 격국 분석</span>
@@ -282,7 +244,6 @@
                 </div>
                 <div class="yongshin-section" id="yongshinSection"></div>
 
-                <!-- 3. 대운 (Daewoon) -->
                 <div class="section-label reveal">
                     <span class="label-line"></span>
                     <span class="label-text">대운</span>
@@ -290,7 +251,6 @@
                 </div>
                 <div class="daewoon-section" id="daewoonSection"></div>
 
-                <!-- 4. 오행 분석 (Ohaeng) -->
                 <div class="section-label reveal">
                     <span class="label-line"></span>
                     <span class="label-text">오행 분석</span>
@@ -298,7 +258,6 @@
                 </div>
                 <div class="ohaeng-section" id="ohaengSection"></div>
 
-                <!-- 5. 십성 분석 (Sipseong) -->
                 <div class="section-label reveal">
                     <span class="label-line"></span>
                     <span class="label-text">십성 분석</span>
@@ -306,7 +265,6 @@
                 </div>
                 <div class="sipseong-section" id="sipseongSection"></div>
 
-                <!-- 6. 성격 및 특성 (Character) -->
                 <div class="section-label reveal">
                     <span class="label-line"></span>
                     <span class="label-text">성격 및 특성</span>
@@ -314,7 +272,6 @@
                 </div>
                 <div class="character-card reveal" id="characterCard"></div>
 
-                <!-- 7. 12운성 & 12신살 & 형충파해 심화 -->
                 <div class="section-label reveal">
                     <span class="label-line"></span>
                     <span class="label-text">12운성 · 12신살 · 형충파해</span>
@@ -322,7 +279,6 @@
                 </div>
                 <div class="extra-analysis-section" id="extraAnalysisSection"></div>
 
-                <!-- 8. 궁합 분석 (Compatibility Result Section) -->
                 <div id="compatResultContainer" style="display:none;">
                     <div class="section-label reveal">
                         <span class="label-line"></span>
@@ -332,18 +288,15 @@
                     <div class="compatibility-section" id="compatResultSection"></div>
                 </div>
 
-                <!-- 9. 연도별 운세 (15년 운세 + 상단 15년 클릭 버튼 탭) -->
                 <div class="section-label reveal">
                     <span class="label-line"></span>
                     <span class="label-text">연도별 운세</span>
                     <span class="label-line"></span>
                 </div>
 
-                <!-- Year Nav Buttons -->
                 <div class="year-nav" id="yearNav"></div>
                 <div class="yearly-fortune" id="yearlyFortune"></div>
 
-                <!-- Footer -->
                 <div class="result-footer">
                     <div class="footer-divider"><span class="footer-diamond">◇</span></div>
                     <p class="footer-text">이성효의 명리학 · 사주팔자는 참고용입니다</p>
@@ -356,9 +309,150 @@
     <!-- Toast Notification -->
     <div class="toast-container" id="toastContainer"></div>
 
+    <pre id="uitestOut" style="display:none;"></pre>
+
     <script src="https://cdn.jsdelivr.net/npm/korean-lunar-calendar@0.4.0/dist/korean-lunar-calendar.min.js"></script>
     <script src="pinch-zoom.js"></script>
     <script src="saju-engine.js"></script>
     <script src="script.js"></script>
+    <script>
+    (function(){
+        const R = [];
+        function rec(k, ok, msg){ R.push((ok ? 'PASS' : 'FAIL') + '|' + k + '|' + msg); console.log('[UITEST] ' + R[R.length-1]); }
+        const $ = s => document.querySelector(s);
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+        async function run(){
+            try {
+                // A: 잘못된 날짜 차단
+                $('#userName').value = '테스트';
+                $('#birthDateInput').value = '2023-02-30';
+                $('#fortuneForm').requestSubmit();
+                await sleep(300);
+                const toastA = !!$('.toast');
+                const formVisibleA = getComputedStyle($('#formSection')).display !== 'none';
+                rec('A_잘못된날짜차단', toastA && formVisibleA, 'toast=' + toastA + ' resultSection=' + (getComputedStyle($('#resultSection')).display !== 'none'));
+
+                // B1: 음력 변환 (윤달 없음) + 윤달 UI 표시
+                $('#userName').value = '테스트';
+                $('#birthDateInput').value = '2023-02-15';
+                document.querySelector('#calendarToggle .cal-btn[data-cal="lunar"]').click();
+                await sleep(100);
+                const leapVisible = getComputedStyle($('#intercalationGroup')).display !== 'none';
+                $('#intercalationToggle').checked = false;
+                $('#fortuneForm').requestSubmit();
+                await sleep(400);
+                const birthB1 = $('#profileBirth').textContent;
+                rec('B1_윤달UI표시', leapVisible, '윤달 입력란 표시=' + leapVisible);
+                rec('B1_음력변환', birthB1.indexOf('2023년 3월 6일') !== -1, birthB1);
+
+                // B2: 윤달 변환 (윤2월 15일)
+                $('#btnBack').click();
+                await sleep(150);
+                $('#userName').value = '테스트';
+                $('#birthDateInput').value = '2023-02-15';
+                document.querySelector('#calendarToggle .cal-btn[data-cal="lunar"]').click();
+                await sleep(100);
+                $('#intercalationToggle').checked = true;
+                $('#fortuneForm').requestSubmit();
+                await sleep(400);
+                const birthB2 = $('#profileBirth').textContent;
+                rec('B2_윤달변환', birthB2.indexOf('2023년 4월 5일') !== -1 && birthB2.indexOf('(윤)') !== -1, birthB2);
+
+                // C: 양력 A 케이스
+                $('#btnBack').click();
+                await sleep(150);
+                $('#userName').value = '테스트';
+                $('#birthDateInput').value = '1992-03-04';
+                document.querySelector('#calendarToggle .cal-btn[data-cal="solar"]').click();
+                await sleep(100);
+                document.querySelector('#timeGrid .time-btn[data-hour="10"]').click();
+                $('#fortuneForm').requestSubmit();
+                await sleep(500);
+                const pillars = $('#sajuPillars').innerText.replace(/\s+/g, ' ').trim();
+                const yd = $('#yongshinSection').innerText;
+                const adviceEl = $('#ohaengSection .ohaeng-advice');
+                const extra = $('#extraAnalysisSection').innerText;
+                const yearText = $('#yearlyFortune').innerText;
+                // 앱은 지지를 한글(신/인/묘/사)로 표시 - 8자 순서로 검증
+                const pSeq = ['壬','신','壬','인','己','묘','己','사'].every(ch => pillars.indexOf(ch) !== -1);
+                rec('C_사주팔자', pSeq, pillars);
+                rec('C_용신동적해설', yd.indexOf('己의 기운이') !== -1, yd.replace(/\n/g, ' ').substring(0, 70));
+                rec('C_오행조언', !!adviceEl && adviceEl.textContent.trim().length > 10, adviceEl ? adviceEl.textContent.trim().substring(0, 55) : '없음');
+                rec('C_12운성신살해설', extra.indexOf('해설') !== -1, '렌더링 OK');
+                rec('C_연도별운세', yearText.indexOf('丙') !== -1 && yearText.indexOf('2026년') !== -1, '15년 카드 OK');
+                // 재제출 중복 리스너 확인: 두 번째 제출 후 연도 버튼 클릭이 정상 동작하는지
+                $('#btnBack').click();
+                await sleep(150);
+                $('#userName').value = '테스트';
+                $('#birthDateInput').value = '1999-11-20';
+                document.querySelector('#timeGrid .time-btn[data-hour="18"]').click();
+                $('#fortuneForm').requestSubmit();
+                await sleep(500);
+                const navBtn = document.querySelector('#yearNav .year-nav-btn[data-index="3"]');
+                navBtn.click();
+                await sleep(300);
+                const firstCard = document.querySelector('#yearlyFortune .fortune-year-card');
+                rec('C_연도탭중복', !!firstCard, '재제출 후 탭 클릭 정상=' + !!firstCard);
+
+                // D: 궁합 모드
+                $('#btnBack').click();
+                await sleep(150);
+                document.querySelector('#compatModeToggle .toggle-btn[data-mode="couple"]').click();
+                await sleep(100);
+                $('#userName').value = '김하늘';
+                $('#birthDateInput').value = '1992-03-04';
+                $('#userName2').value = '박별';
+                $('#birthDateInput2').value = '1999-11-20';
+                document.querySelector('#timeGrid2 .time-btn[data-hour="18"]').click();
+                $('#fortuneForm').requestSubmit();
+                await sleep(500);
+                const compatVisible = getComputedStyle($('#compatResultContainer')).display !== 'none';
+                rec('D_궁합분석', compatVisible && $('#compatResultSection').innerText.length > 50, compatVisible ? '궁합 결과 렌더링 OK' : '궁합 미표시');
+
+                // E: 저장 → 복원
+                $('#btnSaveResult').click();
+                await sleep(150);
+                $('#btnBack').click();
+                await sleep(150);
+                document.querySelector('#compatModeToggle .toggle-btn[data-mode="single"]').click();
+                await sleep(100);
+                $('#btnLoadSaved').click();
+                await sleep(300);
+                const nameR = $('#userName').value === '김하늘';
+                const dateR = $('#birthDateInput').value === '1992-03-04';
+                const compatR = getComputedStyle($('#compatFields')).display !== 'none';
+                const name2R = $('#userName2').value === '박별';
+                rec('E_저장복원', nameR && dateR && compatR && name2R, 'name=' + $('#userName').value + ' date=' + $('#birthDateInput').value + ' compat=' + compatR + ' name2=' + $('#userName2').value);
+
+                // F: 궁합 + 음력 + 상대방만 윤달 구분 (본인 정월 2/15 → 3/6, 상대 윤2/15 → 4/5)
+                $('#btnBack').click();
+                await sleep(150);
+                document.querySelector('#compatModeToggle .toggle-btn[data-mode="couple"]').click();
+                await sleep(100);
+                document.querySelector('#calendarToggle .cal-btn[data-cal="lunar"]').click();
+                await sleep(100);
+                $('#userName').value = '김하늘';
+                $('#birthDateInput').value = '2023-02-15';
+                $('#intercalationToggle').checked = false;
+                $('#userName2').value = '박별';
+                $('#birthDateInput2').value = '2023-02-15';
+                $('#intercalationToggle2').checked = true;
+                $('#fortuneForm').requestSubmit();
+                await sleep(500);
+                const s1 = _lastResult.result.solarDate;
+                const s2 = _lastResult.compat.result.solarDate;
+                rec('F_궁합윤달구분', s1.month === 3 && s1.day === 6 && s2.month === 4 && s2.day === 5,
+                    '본인=' + s1.year + '-' + s1.month + '-' + s1.day + ' 상대(윤)=' + s2.year + '-' + s2.month + '-' + s2.day);
+            } catch (e) {
+                rec('EXCEPTION', false, e.message + ' | ' + (e.stack || '').split('\n')[0]);
+            }
+            const pass = R.filter(r => r.startsWith('PASS')).length;
+            const fail = R.filter(r => r.startsWith('FAIL')).length;
+            document.title = 'UITEST|P' + pass + 'F' + fail + '|' + R.join('~');
+            $('#uitestOut').textContent = R.join('\n');
+        }
+        document.addEventListener('DOMContentLoaded', () => setTimeout(run, 600));
+    })();
+    </script>
 </body>
 </html>

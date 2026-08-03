@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>사주 엔진 자체 검증 (3중 검증)</title>
+<style>
+body { background:#14141f; color:#eee; font-family: 'Malgun Gothic', sans-serif; padding: 24px; }
+h1 { color:#f1c40f; border-bottom:2px solid #f1c40f; padding-bottom:8px; }
+h2 { color:#e8b64c; margin-top:28px; border-left:4px solid #e8b64c; padding-left:10px; }
+pre { background:#1c1c2e; border:1px solid #3a3a55; padding:14px; border-radius:8px; white-space:pre-wrap; word-break:break-all; font-size:12px; line-height:1.55; max-height:520px; overflow:auto; color:#b8d0ff; }
+.ok { color:#2ecc71; font-weight:bold; }
+.fail { color:#e74c3c; font-weight:bold; }
+.info { color:#95a5a6; font-size:13px; }
+</style>
+</head>
+<body>
+<h1>🔮 사주 엔진 자체 검증 페이지 (v5.0)</h1>
+<p class="info">이 페이지는 브라우저에서 saju-engine.js를 직접 실행하여 3중 검증(알고리즘 앵커 / 해설 가변성 / 중복·엣지케이스)을 수행합니다.</p>
+<div id="out"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/korean-lunar-calendar@0.4.0/dist/korean-lunar-calendar.min.js"></script>
+<script src="saju-engine.js"></script>
+<script>
+const out = document.getElementById('out');
+function log(s){ out.insertAdjacentHTML('beforeend', s + '\n'); }
+function el(tag, text){ const e=document.createElement(tag); e.textContent=text; out.appendChild(e); out.appendChild(document.createElement('br')); }
+
+const cases = [
+    { label: 'CASE A: 1992-03-04 10시 남자 양력', y:1992, m:3, d:4, hour:'10', gender:'male', cal:'solar' },
+    { label: 'CASE B: 1999-11-20 18시 여자 양력', y:1999, m:11, d:20, hour:'18', gender:'female', cal:'solar' },
+    { label: 'EDGE 1: 2000-01-01 0시 남자 (기준일 앵커)', y:2000, m:1, d:1, hour:'0', gender:'male', cal:'solar' },
+    { label: 'EDGE 2: 2024-01-01 22시 남자 (월일동주 경계)', y:2024, m:1, d:1, hour:'22', gender:'male', cal:'solar' },
+    { label: 'EDGE 3: 1984-02-02 12시 여자 (입춘 직전)', y:1984, m:2, d:2, hour:'12', gender:'female', cal:'solar' },
+    { label: 'EDGE 4: 음력 1990-05-15 6시 남자 (음력 변환)', y:1990, m:5, d:15, hour:'6', gender:'male', cal:'lunar' },
+    { label: 'EDGE 5: 1900-01-01 0시 남자 (범위 최소)', y:1900, m:1, d:1, hour:'0', gender:'male', cal:'solar' },
+    { label: 'EDGE 6: 2035-12-31 22시 여자 (범위 최대)', y:2035, m:12, d:31, hour:'22', gender:'female', cal:'solar' },
+];
+
+const results = {};
+let pass = 0, fail = 0;
+
+// ── 케이스별 계산 출력 ──
+log('<h2>① 각 입력값별 계산 결과</h2>');
+cases.forEach(c => {
+    const r = window.calculateSaju(c.y, c.m, c.d, c.hour, c.gender, c.cal);
+    results[c.label] = r;
+    const pillars8 = r.pillars.map(p => p.gan.name + p.ji.hangul).join(' ');
+    const dw = r.daewoon;
+    log(`◆ ${c.label}`);
+    log(`   8자: ${pillars8}  |  일간: ${r.dayGan.name}(${r.dayGan.hangul})  |  오행: ${Object.values(r.ohaengCount).join('/')}`);
+    log(`   신강: ${r.yongshinData.strengthText}(${r.yongshinData.score}점)  용신: ${r.yongshinData.yongshin}  희신: ${r.yongshinData.heeshin}  |  대운: ${dw.direction} ${dw.startAge}세기산  |  12운성: ${r.wunseongs.join(',')}  |  12신살: ${r.sinsals.join(',')}`);
+});
+
+// ── 1차 검증: 일주 앵커 ──
+log('<h2>② 1차 검증 - 일주(日柱) 앵커 대조 (공인 기준일)</h2>');
+const anchors = [
+    { label: '1949-10-01 → 甲子일', expect: '甲子', c: {y:1949,m:10,d:1} },
+    { label: '2000-01-01 → 戊午일', expect: '戊午', c: {y:2000,m:1,d:1} },
+    { label: '2024-01-01 → 甲子일', expect: '甲子', c: {y:2024,m:1,d:1} },
+    { label: '1990-06-07 → 癸卯일 (음력 1990-05-15의 양력 변환일)', expect: '癸卯', c: {y:1990,m:6,d:7} },
+];
+anchors.forEach(a => {
+    const r = window.calculateSaju(a.c.y, a.c.m, a.c.d, '12', 'male', 'solar');
+    const day = r.dayPillar.gan.name + r.dayPillar.ji.hangul;
+    const ok = day === a.expect;
+    if (ok) pass++; else fail++;
+    log(`<span class="${ok?'ok':'fail'}">${ok?'✓ PASS':'✗ FAIL'} ${a.label} → 실제 계산: ${day}</span>`);
+});
+
+// ── 2차 검증: A vs B 해설 가변성 ──
+log('<h2>③ 2차 검증 - 입력값별 해설 100% 가변성 (A vs B 전체 문자열 비교)</h2>');
+const rA = results['CASE A: 1992-03-04 10시 남자 양력'];
+const rB = results['CASE B: 1999-11-20 18시 여자 양력'];
+function fullText(r) {
+    return JSON.stringify({
+        pillars: r.pillars.map(p=>p.gan.name+p.ji.hangul),
+        ohaeng: r.ohaengCount,
+        sipseong: r.sipseongs,
+        yongshinDesc: r.yongshinData.desc,
+        daewoon: r.daewoon.daewoons.map(d=>d.ganji+':'+d.title+'|'+d.desc),
+        wunseong: r.wunseongDetails.map(w=>w.name+'|'+w.meaning),
+        sinsal: r.sinsalDetails.map(s=>s.name+'|'+s.meaning),
+        char: window.generateCharacterAnalysis(r.dayGan, r.ohaengCount, r.pillars),
+        fortunes: window.generateAllFortunes(r.pillars, r.dayGanIdx, r.dayPillar.jiIdx, r.solarDate.year, 2026, 15).map(f=>f.total)
+    });
+}
+const tA = fullText(rA), tB = fullText(rB);
+const same = tA === tB;
+if (!same) pass++; else fail++;
+log(`<span class="${same?'fail':'ok'}">${same?'✗ FAIL - A와 B 해설이 완전히 동일합니다!':'✓ PASS - A와 B의 전체 해설 문자열이 100% 상이합니다'}</span>`);
+log(`   해설 문자열 길이: A=${tA.length}자 / B=${tB.length}자`);
+
+// ── 3차 검증: 중복 & 엣지케이스 ──
+log('<h2>④ 3차 검증 - 전체 케이스 8자 중복 검사</h2>');
+const sigs = cases.map(c => results[c.label].pillars.map(p=>p.gan.name+p.ji.hangul).join(''));
+const uniq = new Set(sigs);
+if (uniq.size === sigs.length) { pass++; log('<span class="ok">✓ PASS - 입력 8케이스의 사주팔자 8자가 전부 상이 (중복 0건)</span>'); }
+else { fail++; log(`<span class="fail">✗ FAIL - 중복 ${sigs.length - uniq.size}건 발생</span>`); }
+
+// 연속 날짜(10일) 모두 다른 일주인지 검사
+log('<h2>⑤ 3차 검증 - 연속 10일 일주 변화 (중복 불가 검사)</h2>');
+const days = [];
+for (let i = 0; i < 10; i++) {
+    const dt = new Date(2026, 0, 1 + i);
+    const r = window.calculateSaju(dt.getFullYear(), dt.getMonth()+1, dt.getDate(), '12', 'male', 'solar');
+    days.push(r.dayPillar.gan.name + r.dayPillar.ji.hangul);
+}
+const uniqDays = new Set(days);
+if (uniqDays.size === 10) { pass++; log(`<span class="ok">✓ PASS - 연속 10일 일주: ${days.join(' → ')} (모두 상이)</span>`); }
+else { fail++; log(`<span class="fail">✗ FAIL - 일주 중복 발생: ${days.join(',')}</span>`); }
+
+// ── JSON 응답 예시 ──
+log('<h2>📦 JSON 응답 예시 - CASE A (1992-03-04 10시 남자)</h2>');
+log('<pre>' + JSON.stringify(window.buildFortuneJSON(rA, {year:1992,month:3,day:4,hour:'10',gender:'male',calType:'solar',name:'테스트A'}), null, 1) + '</pre>');
+log('<h2>📦 JSON 응답 예시 - CASE B (1999-11-20 18시 여자)</h2>');
+log('<pre>' + JSON.stringify(window.buildFortuneJSON(rB, {year:1999,month:11,day:20,hour:'18',gender:'female',calType:'solar',name:'테스트B'}), null, 1) + '</pre>');
+
+log(`<h2 style="color:#f1c40f;font-size:20px;">🧪 종합 검증 결과: PASS ${pass} / FAIL ${fail}</h2>`);
+</script>
+</body>
+</html>

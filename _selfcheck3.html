@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>RUNNING</title>
+</head>
+<body>
+<pre id="out"></pre>
+<script src="saju-engine.js"></script>
+<script>
+function short(s, n){ return s.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().substring(0, n); }
+function dump(r){
+    const dw = r.daewoon.daewoons[0];
+    const yf = window.generateAllFortunes(r.pillars, r.dayGanIdx, r.dayPillar.jiIdx, r.solarDate.year, 2026, 1)[0];
+    return JSON.stringify({
+        pillars8: r.pillars.map(p => p.gan.name + p.ji.name),
+        ohaeng: r.ohaengCount,
+        sipseong: r.sipseongs,
+        yongshin: { text: r.yongshinData.strengthText, score: r.yongshinData.score, yong: r.yongshinData.yongshin, hee: r.yongshinData.heeshin, desc: short(r.yongshinData.desc, 100) },
+        daewoon0: { ganji: dw.ganji, title: dw.title, desc: short(dw.desc, 100) },
+        character: short(window.generateCharacterAnalysis(r.dayGan, r.ohaengCount, r.pillars), 170),
+        y2026: { total: short(yf.total, 110), wealth: yf.wealth, love: yf.love, health: yf.health, career: yf.career, advice: yf.advice, note: yf.elementNote }
+    });
+}
+const rA = window.calculateSaju(1992, 3, 4, '10', 'male', 'solar');
+const rB = window.calculateSaju(1999, 11, 20, '18', 'female', 'solar');
+const out = 'A=' + dump(rA) + '~B=' + dump(rB);
+document.title = 'DATA' + out;
+document.getElementById('out').textContent = out;
+</script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>CHECK</title>
+</head>
+<body>
+<pre id="out"></pre>
+<script src="saju-engine.js"></script>
+<script>
+/* v5.2 엔진 3개 테스트 케이스 출력 생성 (comparator 데이터 갱신용) */
+const SPECS = [
+  { id: 1, y:1995, m:5, d:20, h:14, g:'male' },
+  { id: 2, y:2024, m:2, d:4, h:16, g:'male' },
+  { id: 3, y:1988, m:6, d:1, h:23, g:'male' },
+];
+const out = [];
+SPECS.forEach(s => {
+  const r = window.calculateSaju(s.y, s.m, s.d, s.h, s.g, 'solar');
+  const charLen = window.generateCharacterAnalysis(r.dayGan, r.ohaengCount, r.pillars).replace(/<[^>]+>/g, '').length;
+  const dw = r.daewoon;
+  const dwAvg = Math.round(dw.daewoons.reduce((a, d) => a + d.desc.length, 0) / dw.daewoons.length);
+  const yf = window.generateAllFortunes(r.pillars, r.dayGanIdx, r.dayPillar.jiIdx, r.solarDate.year, 2026, 15);
+  const yAvg = Math.round(yf.reduce((a, f) => a + f.total.length, 0) / yf.length);
+  out.push('CASE' + s.id + '=' + JSON.stringify({
+    source: 'lee-saju-engine v5.2 (buildFortuneJSON 추출)',
+    case: '',
+    input: { year: s.y, month: s.m, day: s.d, hour: String(s.h), gender: s.g, calType: 'solar', isIntercalation: false },
+    saju: { pillars8: r.pillars.map(p => p.gan.name + p.ji.name), yearPillar: r.yearPillar.gan.name + r.yearPillar.ji.name,
+            monthPillar: r.monthPillar.gan.name + r.monthPillar.ji.name, dayPillar: r.dayPillar.gan.name + r.dayPillar.ji.name,
+            hourPillar: r.hourPillar.gan.name + r.hourPillar.ji.name, dayGan: r.dayGan.name },
+    daewoon: { start_age: dw.startAge, direction: dw.direction.replace(/(\(|\))|\u9806\u884c|\u9006\u884c/g, ''), count: 8 },
+    ohaeng: r.ohaengCount,
+    sipseong: { year: r.sipseongs[0], month: r.sipseongs[1], day: r.sipseongs[2], hour: r.sipseongs[3] },
+    yongshin: { strength: r.yongshinData.strengthText, yongshin: r.yongshinData.yongshin, heeshin: r.yongshinData.heeshin, gyeokguk: r.gyeokguk },
+    text: { yongshinDescLen: r.yongshinData.desc.length, characterLen: charLen, daewoonDescs: 8, daewoonAvgLen: dwAvg,
+            wunseongMeanings: 4, sinsalMeanings: 4, yearlyCount: 15, yearlyAvgLen: yAvg, sipseongDetail: 5, ohaengAdvice: 1 }
+  }));
+});
+document.title = 'DATA2|' + out.join('~');
+document.getElementById('out').textContent = out.join('\n\n');
+</script>
+</body>
+</html>

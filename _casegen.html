@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>CASEGEN</title>
+</head>
+<body>
+<pre id="out"></pre>
+<script src="saju-engine.js"></script>
+<script>
+function L(s){ console.log('[CASEGEN] ' + s); }
+const cases = [
+    ['CASE1: 1995-05-20 14:30 남 양력', 1995,5,20,'14','male','solar',false],
+    ['CASE2: 2024-02-04 16:00 남 양력', 2024,2,4,'16','male','solar',false],
+    ['CASE3: 1988-06-01 23:30 남 양력', 1988,6,1,'23','male','solar',false],
+];
+const out = [];
+cases.forEach(c => {
+    const r = window.calculateSaju(c[1], c[2], c[3], c[4], c[5], c[6], c[7]);
+    const j = window.buildFortuneJSON(r, {year:c[1],month:c[2],day:c[3],hour:c[4],gender:c[5],calType:c[6]});
+    const p8 = j.saju.pillars8.join('');
+    const o = j.ohaeng.count;
+    const s = j.sipseong.byPillar.map(x => x.name);
+    const dw = j.daewoon;
+    const yf = j.yearlyFortunes;
+    const charLen = (j.character.html || '').replace(/<[^>]+>/g, '').length;
+    const yongLen = (j.yongshin.desc || '').length;
+    const dwAvg = Math.round(dw.daewoons.reduce((a,d)=>a+d.desc.length,0)/dw.daewoons.length);
+    const yfAvg = Math.round(yf.reduce((a,f)=>a+f.total.length,0)/yf.length);
+    const meta = {
+        case: c[0],
+        pillars8: j.saju.pillars8,
+        yearPillar: j.saju.yearPillar.ganji,
+        dayGan: j.saju.dayGan.name,
+        ohaeng: o,
+        sipseong: s,
+        daewoon: { startAge: dw.startAge, direction: dw.direction, count: dw.daewoons.length },
+        yongshin: { strength: j.yongshin.strengthText, yong: j.yongshin.yongshin, hee: j.yongshin.heeshin, descLen: yongLen },
+        text: { characterLen: charLen, daewoonDescs: dw.daewoons.length, daewoonAvgLen: dwAvg,
+                wunseongMeanings: Object.keys(j.wunseong).length, sinsalMeanings: Object.keys(j.sinsal).length,
+                yearlyCount: yf.length, yearlyAvgLen: yfAvg,
+                sipseongDetail: 5, ohaengAdvice: 1, wunseongDetail: 4, sinsalDetail: 4 },
+        totalFields: Object.keys(j).length
+    };
+    out.push(meta);
+    L(JSON.stringify(meta));
+});
+const txt = 'DATA=' + JSON.stringify(out);
+document.title = txt.length > 4000 ? txt.substring(0, 4000) : txt;
+document.getElementById('out').textContent = JSON.stringify(out, null, 1);
+</script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "source": "lee-saju-engine v5.2 (buildFortuneJSON 추출 - 정밀 절기 공식)",
+  "case": "CASE2: 2024-02-04 16:00 남성 양력 (입춘 경계일 - 정밀 입춘 17:27 이전)",
+  "input": { "year": 2024, "month": 2, "day": 4, "hour": "16", "gender": "male", "calType": "solar", "isIntercalation": false },
+  "saju": {
+    "pillars8": ["癸卯", "乙丑", "戊戌", "庚申"],
+    "yearPillar": "癸卯", "monthPillar": "乙丑", "dayPillar": "戊戌", "hourPillar": "庚申",
+    "dayGan": "戊"
+  },
+  "daewoon": { "start_age": 10, "direction": "역행", "count": 8 },
+  "ohaeng": { "wood": 2, "fire": 0, "earth": 3, "metal": 2, "water": 1 },
+  "sipseong": { "year": "정재", "month": "정관", "day": "비견", "hour": "식신" },
+  "yongshin": { "strength": "신강(身強) 사주", "yongshin": "水 (수)", "heeshin": "金 (금)", "gyeokguk": "정재격(正財格)" },
+  "text": {
+    "yongshinDescLen": 139,
+    "characterLen": 692, "daewoonDescs": 8, "daewoonAvgLen": 130,
+    "wunseongMeanings": 4, "sinsalMeanings": 4,
+    "yearlyCount": 15, "yearlyAvgLen": 180,
+    "sipseongDetail": 5, "ohaengAdvice": 1,
+    "gyeokgukDesc": 1,
+    "hyeongchungDesc": 1, "yukchinDesc": 1,
+    "sinsal12": 12,
+    "yearlyWealth": 15, "yearlyLove": 15, "yearlyHealth": 15, "yearlyCareer": 15,
+    "yearlyAcademic": 15, "yearlyMoney": 15, "yearlyLuck": 15
+  }
+}

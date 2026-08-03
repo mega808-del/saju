@@ -1,0 +1,26 @@
+{
+  "source": "lee-saju-engine v5.2 (buildFortuneJSON 추출)",
+  "case": "CASE1: 1995-05-20 14:30 남성 양력",
+  "input": { "year": 1995, "month": 5, "day": 20, "hour": "14", "gender": "male", "calType": "solar", "isIntercalation": false },
+  "saju": {
+    "pillars8": ["乙亥", "辛巳", "辛亥", "乙未"],
+    "yearPillar": "乙亥", "monthPillar": "辛巳", "dayPillar": "辛亥", "hourPillar": "乙未",
+    "dayGan": "辛"
+  },
+  "daewoon": { "start_age": 5, "direction": "역행", "count": 8 },
+  "ohaeng": { "wood": 2, "fire": 1, "earth": 1, "metal": 2, "water": 2 },
+  "sipseong": { "year": "편재", "month": "비견", "day": "비견", "hour": "편재" },
+  "yongshin": { "strength": "신약(身弱) 사주", "yongshin": "土 (토)", "heeshin": "金 (금)", "gyeokguk": "정인격(正印格)" },
+  "text": {
+    "yongshinDescLen": 89,
+    "characterLen": 632, "daewoonDescs": 8, "daewoonAvgLen": 129,
+    "wunseongMeanings": 4, "sinsalMeanings": 4,
+    "yearlyCount": 15, "yearlyAvgLen": 178,
+    "sipseongDetail": 5, "ohaengAdvice": 1,
+    "gyeokgukDesc": 1,
+    "hyeongchungDesc": 1, "yukchinDesc": 1,
+    "sinsal12": 12,
+    "yearlyWealth": 15, "yearlyLove": 15, "yearlyHealth": 15, "yearlyCareer": 15,
+    "yearlyAcademic": 15, "yearlyMoney": 15, "yearlyLuck": 15
+  }
+}

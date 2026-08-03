@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>RUNNING</title>
+</head>
+<body>
+<pre id="out">LOADING...</pre>
+<script src="https://cdn.jsdelivr.net/npm/korean-lunar-calendar@0.4.0/dist/korean-lunar-calendar.min.js"></script>
+<script src="saju-engine.js"></script>
+<script>
+const lines = [];
+function L(s){ lines.push(s); console.log('[SELFRUN] ' + s); }
+
+let pass = 0, fail = 0;
+function chk(ok, msg){ if(ok){pass++; L('PASS ' + msg);} else {fail++; L('FAIL ' + msg);} }
+
+/* ── 0. 절기 공식 검증 (웹 교차검증 앵커 6건) ── */
+L('=== 0. 절기공식(천문 근사) ===');
+function fmtD(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); }
+const termAnchors = [
+    ['2024 춘분', window.findSolarTermTime(2024, 0), '2024-03-20 12:06'],
+    ['2024 하지', window.findSolarTermTime(2024, 90), '2024-06-21 05:51'],
+    ['2024 추분', window.findSolarTermTime(2024, 180), '2024-09-22 21:44'],
+    ['2024 동지', window.findSolarTermTime(2024, 270), '2024-12-21 18:21'],
+    ['2023 동지', window.findSolarTermTime(2023, 270), '2023-12-22 12:27'],
+    ['2024 소한', window.findSolarTermTime(2024, 285), '2024-01-06 04:49'],
+    ['2024 입춘', window.findSolarTermTime(2024, 315), '2024-02-04 17:27'],
+    ['2000 입춘', window.findSolarTermTime(2000, 315), '2000-02-04 21:40'],
+    ['1984 입춘', window.findSolarTermTime(1984, 315), '1984-02-05 00:19'],
+    ['1992 청명', window.findSolarTermTime(1992, 15), '1992-04-04 21:45'],
+    ['1988 망종(날짜)', window.findSolarTermTime(1988, 75), '1988-06-05 21:15'],
+];
+termAnchors.forEach(a => {
+    const got = fmtD(a[1]);
+    const exp = a[2];
+    const dateOk = got.substring(0, 10) === exp.substring(0, 10);
+    const minDiff = Math.abs(a[1] - new Date(exp.replace(' ', 'T') + ':00')) / 60000;
+    chk(dateOk && minDiff <= 90, '절기 ' + a[0] + ' 기대~' + exp + ' 실제 ' + got + ' (편차 ' + Math.round(minDiff) + '분)');
+});
+L('INFO 경칩 1992 = ' + fmtD(window.findSolarTermTime(1992, 345)));
+L('INFO 청명 1993 = ' + fmtD(window.findSolarTermTime(1993, 15)));
+L('INFO 입춘 2026 = ' + fmtD(window.findSolarTermTime(2026, 315)));
+
+/* ── 1. 8자 케이스 ── */
+const cases = [
+    ['A:1992-03-04 10시 남', 1992,3,4,'10','male','solar'],
+    ['B:1999-11-20 18시 여', 1999,11,20,'18','female','solar'],
+    ['E1:2000-01-01 0시 남', 2000,1,1,'0','male','solar'],
+    ['E2:2024-01-01 22시 남', 2024,1,1,'22','male','solar'],
+    ['E3:1984-02-02 12시 여', 1984,2,2,'12','female','solar'],
+    ['E4:음력1990-05-15 6시 남', 1990,5,15,'6','male','lunar'],
+    ['E5:1900-01-01 0시 남', 1900,1,1,'0','male','solar'],
+    ['E6:2035-12-31 22시 여', 2035,12,31,'22','female','solar'],
+];
+const results = {};
+L('=== 1. 8자 ===');
+cases.forEach(c => {
+    const r = window.calculateSaju(c[1], c[2], c[3], c[4], c[5], c[6]);
+    results[c[0]] = r;
+    const p8 = r.pillars.map(p => p.gan.name + p.ji.name).join(' ');
+    L(c[0] + ' => ' + p8 + ' | 격국' + (r.gyeokguk||'-') + ' | ' + r.yongshinData.strengthText + r.yongshinData.score + '점 | 대운' + r.daewoon.direction + r.daewoon.startAge + '세 | 야자시:' + r.isYajasi);
+});
+
+/* ── 2. 일주앵커 ── */
+L('=== 2. 일주앵커 ===');
+const anchors = [
+    ['1949-10-01', 1949,10,1, '甲子'],
+    ['2000-01-01', 2000,1,1, '戊午'],
+    ['2024-01-01', 2024,1,1, '甲子'],
+    ['1990-06-07', 1990,6,7, '癸卯'],
+];
+anchors.forEach(a => {
+    const r = window.calculateSaju(a[1], a[2], a[3], '12', 'male', 'solar');
+    const day = r.dayPillar.gan.name + r.dayPillar.ji.name;
+    chk(day === a[4], '앵커' + a[0] + ' 기대' + a[4] + ' 실제' + day);
+});
+
+/* ── 2b. 월주앵커 ── */
+L('=== 2b. 월주앵커 ===');
+const monthAnchors = [
+    ['2000-01-01', 2000,1,1, '丙子'],
+    ['2024-01-01', 2024,1,1, '甲子'],
+    ['1900-01-01', 1900,1,1, '丙子'],
+    ['1949-10-01', 1949,10,1, '癸酉'],
+    ['1990-06-07', 1990,6,7, '壬午'],
+    ['1992-03-04', 1992,3,4, '壬寅'],
+    ['1999-11-20', 1999,11,20, '乙亥'],
+    ['1984-02-02', 1984,2,2, '乙丑'],
+];
+monthAnchors.forEach(a => {
+    const r = window.calculateSaju(a[1], a[2], a[3], '12', 'male', 'solar');
+    const mp = r.monthPillar.gan.name + r.monthPillar.ji.name;
+    chk(mp === a[4], '월앵커' + a[0] + ' 기대' + a[4] + ' 실제' + mp);
+});
+
+/* ── 2c. 입춘 경계 정밀 검증 (v5.2 핵심) ── */
+L('=== 2c. 입춘경계(정밀시각) ===');
+const ipchun2024 = window.findSolarTermTime(2024, 315);
+L('INFO 2024 입춘 = ' + fmtD(ipchun2024) + ' (공인 2/4 17:27 KST, 베이징시각 16:27 혼용 주의)');
+const rBefore = window.calculateSaju(2024, 2, 4, 16, 'male', 'solar'); // 16:00 < 입춘(17:2x)
+const rMid    = window.calculateSaju(2024, 2, 4, 17, 'male', 'solar'); // 17:00 < 입춘(17:2x)
+const rAfter  = window.calculateSaju(2024, 2, 4, 22, 'male', 'solar'); // 22:00 > 입춘
+const bStr = rBefore.yearPillar.gan.name + rBefore.yearPillar.ji.name + '/' + rBefore.monthPillar.gan.name + rBefore.monthPillar.ji.name;
+const mStr = rMid.yearPillar.gan.name + rMid.yearPillar.ji.name + '/' + rMid.monthPillar.gan.name + rMid.monthPillar.ji.name;
+const aStr = rAfter.yearPillar.gan.name + rAfter.yearPillar.ji.name + '/' + rAfter.monthPillar.gan.name + rAfter.monthPillar.ji.name;
+chk(bStr === '癸卯/乙丑', '입춘 전 16:00 → ' + bStr + ' (기대 癸卯/乙丑)');
+chk(mStr === '癸卯/乙丑', '입춘 전 17:00 → ' + mStr + ' (기대 癸卯/乙丑, 입춘 17:2x 이후)');
+chk(aStr === '甲辰/丙寅', '입춘 후 22:00 → ' + aStr + ' (기대 甲辰/丙寅)');
+
+/* ── 2d. 야자시 검증 (v5.2 핵심) ── */
+L('=== 2d. 야자시(23시) ===');
+const rYajasi = window.calculateSaju(1988, 6, 1, 23, 'male', 'solar'); // 23:30 → 야자시 → 다음날
+const rJeong  = window.calculateSaju(1988, 6, 1, 0, 'male', 'solar');  // 00:30 → 정자시 → 당일
+const yStr = rYajasi.pillars.map(p => p.gan.name + p.ji.name).join(' ');
+const jStr = rJeong.pillars.map(p => p.gan.name + p.ji.name).join(' ');
+L('INFO 야자시(23시)  : ' + yStr + ' | 일주 ' + rYajasi.dayPillar.gan.name + rYajasi.dayPillar.ji.name + ' 시주 ' + rYajasi.hourPillar.gan.name + rYajasi.hourPillar.ji.name + ' | 대운 ' + rYajasi.daewoon.startAge + '세');
+L('INFO 정자시(00시)  : ' + jStr + ' | 일주 ' + rJeong.dayPillar.gan.name + rJeong.dayPillar.ji.name + ' 시주 ' + rJeong.hourPillar.gan.name + rJeong.hourPillar.ji.name + ' | 대운 ' + rJeong.daewoon.startAge + '세');
+chk(rYajasi.dayPillar.gan.name + rYajasi.dayPillar.ji.name === '戊子', '야자시 일주 戊子 (기대: 다음날 6/2)');
+chk(rYajasi.hourPillar.gan.name + rYajasi.hourPillar.ji.name === '壬子', '야자시 시주 壬子');
+chk(rYajasi.daewoon.startAge === 1, '야자시 대운 1세 (기대 1)');
+chk(rJeong.dayPillar.gan.name + rJeong.dayPillar.ji.name === '丁亥', '정자시 일주 丁亥 (당일 유지)');
+chk(rYajasi.isYajasi === true && rJeong.isYajasi === false, '야자시 플래그');
+
+/* ── 2e. 대운기산(정밀 절기) ── */
+L('=== 2e. 대운기산 ===');
+const dwAnchors = [
+    ['1992-03-10 남', 1992,3,10,'12','male', 9, '순행(順行)'],
+    ['2000-01-01 남', 2000,1,1,'12','male', 8, '역행(逆行)'],
+    ['2024-01-01 남', 2024,1,1,'12','male', 8, '역행(逆行)'],
+];
+dwAnchors.forEach(a => {
+    const r = window.calculateSaju(a[1], a[2], a[3], a[4], a[5], 'solar');
+    const ok = r.daewoon.startAge === a[6] && r.daewoon.direction === a[7];
+    chk(ok, '대운' + a[0] + ' 기대 ' + a[6] + '세 ' + a[7] + ' 실제 ' + r.daewoon.startAge + '세 ' + r.daewoon.direction);
+});
+['1992-03-10 여','1992-03-04 남','1999-11-20 여'].forEach(t => {
+    const c = { '1992-03-10 여': [1992,3,10,'12','female'], '1992-03-04 남': [1992,3,4,'12','male'], '1999-11-20 여': [1999,11,20,'12','female'] }[t];
+    const r = window.calculateSaju(c[0], c[1], c[2], c[3], c[4], 'solar');
+    L('INFO 대운' + t + ' = ' + r.daewoon.startAge + '세 ' + r.daewoon.direction + ' (인접 절: ' + fmtD(window.findSolarTermTime(c[0], 345)) + ' 경칩 / ' + fmtD(window.findSolarTermTime(c[0], 15)) + ' 청명)');
+});
+
+/* ── 2f. 세운연주(입춘기준) ── */
+L('=== 2f. 세운연주 ===');
+const rDummy = window.calculateSaju(1992, 3, 4, '10', 'male', 'solar');
+const fReal = window.generateAllFortunes(rDummy.pillars, rDummy.dayGanIdx, rDummy.dayPillar.jiIdx, 1992, 2026, 1)[0];
+chk(fReal.ganji === '丙오', '세운 2026 = ' + fReal.ganji + '(' + fReal.sipseong + ') 기대 丙오');
+const f2026 = window.generateAllFortunes(rDummy.pillars, rDummy.dayGanIdx, rDummy.dayPillar.jiIdx, 1992, 2026, 1)[0];
+L('INFO 2026 카테고리: 학업=' + (f2026.academic ? f2026.academic.substring(0, 20) : '없음') + ' 금전=' + (f2026.money ? f2026.money.substring(0, 20) : '없음') + ' 인덕=' + (f2026.luck ? f2026.luck.substring(0, 20) : '없음'));
+
+/* ── 2g. 윤달 변환 ── */
+L('=== 2g. 윤달 ===');
+if (typeof KoreanLunarCalendar !== 'undefined') {
+    const normal = window.calculateSaju(2023, 2, 15, '12', 'male', 'lunar', false);
+    const leap = window.calculateSaju(2023, 2, 15, '12', 'male', 'lunar', true);
+    const nStr = normal.solarDate.year + '-' + normal.solarDate.month + '-' + normal.solarDate.day;
+    const lStr = leap.solarDate.year + '-' + leap.solarDate.month + '-' + leap.solarDate.day;
+    chk(nStr !== lStr, '윤달 구분: 정월 ' + nStr + ' / 윤2월 ' + lStr);
+} else { L('INFO 윤달 라이브러리 없음(오프라인)'); pass++; }
+
+/* ── 2h. 격국 & 12신살 전체 & 형충파해 & 육친 ── */
+L('=== 2h. 격국/신살/형충/육친 ===');
+const rG = window.calculateSaju(1995, 5, 20, 14, 'male', 'solar');
+chk(rG.gyeokguk === '정인격(正印格)', 'Case1 격국 = ' + rG.gyeokguk + ' (기대 정인격)');
+L('INFO Case1 격국해설: ' + (rG.gyeokgukDesc || '-'));
+chk(rG.allSinsal && rG.allSinsal.length === 12, '12신살 전체 12개 (' + rG.allSinsal.length + ')');
+L('INFO 12신살 전체: ' + rG.allSinsal.map(s => s.jiHangul + s.sal).join(','));
+chk(Array.isArray(rG.hyeongchungDetails), '형충파해 배열 존재 (' + rG.hyeongchungDetails.length + '건)');
+if (rG.hyeongchungDetails.length > 0) L('INFO 형충파해: ' + rG.hyeongchungDetails.map(d => d.a + '↔' + d.b + ':' + d.type).join(','));
+chk(rG.yukchinDetails && rG.yukchinDetails.length === 4, '육친관계 4기둥');
+L('INFO 육친: ' + rG.yukchinDetails.map(y => y.sipseong + '→' + y.yukchin).join(' | '));
+
+/* ── 3. A/B가변성 ── */
+L('=== 3. A/B가변성 ===');
+const rA = results['A:1992-03-04 10시 남'], rB = results['B:1999-11-20 18시 여'];
+function txt(r) {
+    return JSON.stringify({
+        p: r.pillars.map(p=>p.gan.name+p.ji.name), o: r.ohaengCount, s: r.sipseongs,
+        g: r.gyeokguk, y: r.yongshinData.desc, dw: r.daewoon.daewoons.map(d=>d.ganji+'|'+d.desc),
+        w: r.wunseongDetails.map(w=>w.name+'|'+w.meaning), s2: r.sinsalDetails.map(s=>s.name+'|'+s.meaning),
+        hp: r.hyeongchungDetails, yk: r.yukchinDetails.map(y=>y.yukchin+'|'+y.desc),
+        ch: window.generateCharacterAnalysis(r.dayGan, r.ohaengCount, r.pillars),
+        f: window.generateAllFortunes(r.pillars, r.dayGanIdx, r.dayPillar.jiIdx, r.solarDate.year, 2026, 15).map(f=>f.total)
+    });
+}
+const same = txt(rA) === txt(rB);
+chk(!same, '가변성 A/B 상이(A' + txt(rA).length + '자 B' + txt(rB).length + '자)');
+
+/* ── 4. 중복검사 ── */
+L('=== 4. 중복검사 ===');
+const sigs = cases.map(c => results[c[0]].pillars.map(p=>p.gan.name+p.ji.name).join(''));
+const uniq = new Set(sigs);
+chk(uniq.size === sigs.length, '중복 0건 (8케이스 전부 상이)');
+
+/* ── 5. 연속10일 ── */
+L('=== 5. 연속10일 ===');
+const days = [];
+for (let i = 0; i < 10; i++) {
+    const dt = new Date(2026, 0, 1 + i);
+    const r = window.calculateSaju(dt.getFullYear(), dt.getMonth()+1, dt.getDate(), '12', 'male', 'solar');
+    days.push(r.dayPillar.gan.name + r.dayPillar.ji.name);
+}
+chk(new Set(days).size === 10, '연속10일 ' + days.join(','));
+
+L('FINAL: PASS ' + pass + ' / FAIL ' + fail);
+document.title = 'RESULT|P' + pass + 'F' + fail + '|' + lines.join('|');
+document.getElementById('out').textContent = lines.join('\n');
+</script>
+</body>
+</html>

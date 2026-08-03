@@ -412,6 +412,44 @@ body {
    TIME SELECTION BUTTONS ENHANCEMENT
    ═══════════════════════════════════════════ */
 
+/* 오행 보충 조언 (동적 풀이) */
+.ohaeng-advice {
+    margin-top: 12px;
+    padding: 11px 14px;
+    border-left: 3px solid var(--gold-bright);
+    background: rgba(241, 196, 15, 0.06);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: var(--text-primary);
+}
+
+/* 음력 윤달(윤월) 체크박스 */
+.lunar-leap-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 12px;
+    background: var(--bg-inset);
+    border: 1.5px solid rgba(241, 196, 15, 0.25);
+    border-radius: var(--radius-sm);
+    color: var(--gold-light);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.lunar-leap-check:hover {
+    border-color: var(--gold-bright);
+    box-shadow: 0 0 8px rgba(241, 196, 15, 0.15);
+}
+.lunar-leap-check input {
+    width: 17px;
+    height: 17px;
+    accent-color: var(--gold-bright);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
 .time-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -436,6 +474,48 @@ body {
     border-color: var(--gold-bright);
     background: rgba(241, 196, 15, 0.08);
     box-shadow: 0 0 8px rgba(241, 196, 15, 0.15);
+}
+
+/* ★ v5.2: 자시 기준 토글 행 */
+.jasi-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.jasi-toggle-label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--gold-light);
+}
+
+/* ★ v5.2: 12신살 전체표 */
+.sinsal-full-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+.sinsal-full-item {
+    background: var(--bg-inset);
+    border: 1px solid rgba(241, 196, 15, 0.18);
+    border-radius: 8px;
+    padding: 10px 12px;
+}
+.sinsal-full-ji {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--gold-bright);
+}
+.sinsal-full-name {
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 2px 0 4px;
+}
+.sinsal-full-mean {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
 }
 
 .time-btn.active {

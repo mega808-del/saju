@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>SYNTAX-CHECK</title>
+</head>
+<body>
+<pre id="out">CHECKING...</pre>
+<script>
+window.__syntaxErrors = [];
+window.onerror = function(msg, src, line){ window.__syntaxErrors.push(msg + ' @' + (src||'') + ':' + line); return false; };
+</script>
+<script src="saju-engine.js"></script>
+<script src="script.js"></script>
+<script>
+const out = document.getElementById('out');
+const errs = window.__syntaxErrors;
+const engineOk = typeof window.calculateSaju === 'function' && typeof window.buildFortuneJSON === 'function' && typeof window.generateCharacterAnalysis === 'function';
+const uiOk = typeof displayResults === 'function' && typeof renderExtraAnalysis === 'function' && typeof renderDaewoon === 'function';
+const msg = 'engineParsed=' + engineOk + ' | uiParsed=' + uiOk + ' | parseErrors=' + JSON.stringify(errs);
+console.log('[SYNTAX] ' + msg);
+document.title = 'SYNTAX|' + msg;
+out.textContent = msg;
+</script>
+</body>
+</html>

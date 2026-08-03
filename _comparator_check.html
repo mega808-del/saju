@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>CHECK</title>
+</head>
+<body>
+<pre id="out"></pre>
+<script>
+/* ============================================================
+   saju_data_comparator.py 로직의 JS 포팅 검증 페이지
+   (Python 실행 불가 환경에서 데이터·알고리즘·리포트 수치 실측)
+   ============================================================ */
+
+const MY = {
+1:{ "source":"lee-saju-engine v5.2 (buildFortuneJSON 추출)", "case":"CASE1: 1995-05-20 14:30 남성 양력",
+    "input":{"year":1995,"month":5,"day":20,"hour":"14","gender":"male","calType":"solar","isIntercalation":false},
+    "saju":{"pillars8":["乙亥","辛巳","辛亥","乙未"],"dayGan":"辛"},
+    "daewoon":{"start_age":5,"direction":"역행","count":8},
+    "ohaeng":{"wood":2,"fire":1,"earth":1,"metal":2,"water":2},
+    "sipseong":{"year":"편재","month":"비견","day":"비견","hour":"편재"},
+    "text":{"yongshinDescLen":89,"characterLen":632,"daewoonDescs":8,"daewoonAvgLen":129,
+            "wunseongMeanings":4,"sinsalMeanings":4,"yearlyCount":15,"yearlyAvgLen":178,
+            "sipseongDetail":5,"ohaengAdvice":1,"gyeokgukDesc":1,
+            "hyeongchungDesc":1,"yukchinDesc":1,"sinsal12":12,
+            "yearlyWealth":15,"yearlyLove":15,"yearlyHealth":15,"yearlyCareer":15,
+            "yearlyAcademic":15,"yearlyMoney":15,"yearlyLuck":15} },
+2:{ "source":"lee-saju-engine v5.2 (buildFortuneJSON 추출)", "case":"CASE2: 2024-02-04 16:00 남성 양력 (입춘 경계일)",
+    "input":{"year":2024,"month":2,"day":4,"hour":"16","gender":"male","calType":"solar","isIntercalation":false},
+    "saju":{"pillars8":["癸卯","乙丑","戊戌","庚申"],"dayGan":"戊"},
+    "daewoon":{"start_age":10,"direction":"역행","count":8},
+    "ohaeng":{"wood":2,"fire":0,"earth":3,"metal":2,"water":1},
+    "sipseong":{"year":"정재","month":"정관","day":"비견","hour":"식신"},
+    "text":{"yongshinDescLen":139,"characterLen":692,"daewoonDescs":8,"daewoonAvgLen":130,
+            "wunseongMeanings":4,"sinsalMeanings":4,"yearlyCount":15,"yearlyAvgLen":180,
+            "sipseongDetail":5,"ohaengAdvice":1,"gyeokgukDesc":1,
+            "hyeongchungDesc":1,"yukchinDesc":1,"sinsal12":12,
+            "yearlyWealth":15,"yearlyLove":15,"yearlyHealth":15,"yearlyCareer":15,
+            "yearlyAcademic":15,"yearlyMoney":15,"yearlyLuck":15} },
+3:{ "source":"lee-saju-engine v5.2 (buildFortuneJSON 추출)", "case":"CASE3: 1988-06-01 23:30 남성 양력 (야자시·서머타임 테스트)",
+    "input":{"year":1988,"month":6,"day":1,"hour":"23","gender":"male","calType":"solar","isIntercalation":false},
+    "saju":{"pillars8":["戊辰","丁巳","戊子","壬子"],"dayGan":"戊"},
+    "daewoon":{"start_age":1,"direction":"순행","count":8},
+    "ohaeng":{"wood":0,"fire":2,"earth":3,"metal":0,"water":3},
+    "sipseong":{"year":"비견","month":"정인","day":"비견","hour":"편재"},
+    "text":{"yongshinDescLen":141,"characterLen":673,"daewoonDescs":8,"daewoonAvgLen":130,
+            "wunseongMeanings":4,"sinsalMeanings":4,"yearlyCount":15,"yearlyAvgLen":186,
+            "sipseongDetail":5,"ohaengAdvice":1,"gyeokgukDesc":1,
+            "hyeongchungDesc":1,"yukchinDesc":1,"sinsal12":12,
+            "yearlyWealth":15,"yearlyLove":15,"yearlyHealth":15,"yearlyCareer":15,
+            "yearlyAcademic":15,"yearlyMoney":15,"yearlyLuck":15} }
+};
+
+const REF = {
+1:{ "saju":{"year":{"ganji":"乙亥"},"month":{"ganji":"辛巳"},"day":{"ganji":"辛亥"},"hour":{"ganji":"乙未"}},
+    "daewoon":{"start_age":5,"direction":"역행","count":8},
+    "ohaeng":{"wood":2,"fire":1,"earth":1,"metal":2,"water":2},
+    "sipseong":{"year":"편재","month":"비견","day":"비견","hour":"편재"},
+    "interpretation":{"sections":{"격국":"정인격(正印格)","성격":1,"재물운":1,"애정운":1,"직업운":1,"건강운":1,
+      "학업운":1,"금전운":1,"인덕운":1,"12운성":4,"12신살":12,"형충파해":1,"육친관계":1,
+      "보완아이템":3,"대운해설":8,"세운해설":10},"avg_len":135,"total_fields":18} },
+2:{ "saju":{"year":{"ganji":"癸卯"},"month":{"ganji":"乙丑"},"day":{"ganji":"戊戌"},"hour":{"ganji":"庚申"}},
+    "daewoon":{"start_age":10,"direction":"역행","count":8},
+    "ohaeng":{"wood":2,"fire":0,"earth":3,"metal":2,"water":1},
+    "sipseong":{"year":"정재","month":"정관","day":"비견","hour":"식신"},
+    "interpretation":{"sections":{"격국":"정재격(正財格)","성격":1,"재물운":1,"애정운":1,"직업운":1,"건강운":1,
+      "학업운":1,"금전운":1,"인덕운":1,"12운성":4,"12신살":12,"형충파해":1,"육친관계":1,
+      "보완아이템":3,"대운해설":8,"세운해설":10},"avg_len":138,"total_fields":18} },
+3:{ "saju":{"year":{"ganji":"戊辰"},"month":{"ganji":"丁巳"},"day":{"ganji":"戊子"},"hour":{"ganji":"壬子"}},
+    "daewoon":{"start_age":1,"direction":"순행","count":8},
+    "ohaeng":{"wood":0,"fire":2,"earth":3,"metal":0,"water":3},
+    "sipseong":{"year":"비견","month":"정인","day":"비견","hour":"편재"},
+    "interpretation":{"sections":{"격국":"건록격(建禄格)","성격":1,"재물운":1,"애정운":1,"직업운":1,"건강운":1,
+      "학업운":1,"금전운":1,"인덕운":1,"12운성":4,"12신살":12,"형충파해":1,"육친관계":1,
+      "보완아이템":3,"대운해설":8,"세운해설":10},"avg_len":140,"total_fields":18} }
+};
+
+const PILLAR_KEYS=["year","month","day","hour"];
+const OHAENG_KEYS=["wood","fire","earth","metal","water"];
+const JI={"자":"子","축":"丑","인":"寅","묘":"卯","진":"辰","사":"巳","오":"午","미":"未","신":"申","유":"酉","술":"戌","해":"亥"};
+const MY2CANON={"yongshinDescLen":"용신/격국","characterLen":"성격","sipseongDetail":"십성 상세","ohaengAdvice":"오행 보완",
+  "daewoonDescs":"대운 해설","wunseongMeanings":"12운성","sinsalMeanings":"12신살","yearlyCount":"연도별/세운 운세",
+  "hyeongchungDesc":"형충파해","yukchinDesc":"육친관계","sinsal12":"12신살",
+  "yearlyWealth":"재물운","yearlyLove":"애정운","yearlyHealth":"건강운","yearlyCareer":"직업운",
+  "yearlyAcademic":"학업운","yearlyMoney":"금전운","yearlyLuck":"인덕운"};
+const REF2CANON={"격국":"용신/격국","대운해설":"대운 해설","세운해설":"연도별/세운 운세","보완아이템":"보완 아이템"};
+
+function toHanja(gj){ if(!gj||gj.length<2) return gj; return gj[0]+(JI[gj[1]]||gj[1]); }
+function normDir(d){ return (d||"").replace(/\((順行|逆行|順行|逆行)\)/g,"").replace(/順行|逆行/g,""); }
+
+function emptyNorm(){ return {pillars:{year:"",month:"",day:"",hour:""},daewoon:{start_age:null,direction:"",count:0},
+  ohaeng:{wood:0,fire:0,earth:0,metal:0,water:0},sipseong:["","","",""],
+  text:{sections:{},total_sections:0,avg_len:0}}; }
+
+function normMy(raw){
+  const n=emptyNorm(), saju=raw.saju||{}, p8=saju.pillars8;
+  if(Array.isArray(p8)&&p8.length>=4){ PILLAR_KEYS.forEach((k,i)=>{ n.pillars[k]=toHanja(p8[i]); }); }
+  const dw=raw.daewoon||{};
+  let sa=dw.start_age!==undefined?dw.start_age:dw.startAge;
+  if(sa===undefined&&Array.isArray(dw.daewoons)) sa=dw.daewoons[0].startAge;
+  n.daewoon.start_age=(sa===undefined?null:sa);
+  n.daewoon.direction=normDir(dw.direction||""); n.daewoon.count=(dw.daewoons?dw.daewoons.length:dw.count)||0;
+  const oh=(raw.ohaeng||{}).count||raw.ohaeng||{};
+  OHAENG_KEYS.forEach(k=>{ n.ohaeng[k]=Number(oh[k]||0); });
+  const sp=raw.sipseong||{};
+  PILLAR_KEYS.forEach((k,i)=>{ n.sipseong[i]=sp[k]||""; });
+  const t=raw.text||{};
+  const COUNT_KEYS=["sipseongDetail","daewoonDescs","yearlyCount","wunseongMeanings","sinsalMeanings",
+    "sinsal12","yearlyWealth","yearlyLove","yearlyHealth","yearlyCareer","yearlyAcademic","yearlyMoney","yearlyLuck"];
+  const sections={};
+  Object.keys(MY2CANON).forEach(rk=>{ if(t[rk]!==undefined){ const c=MY2CANON[rk];
+    sections[c]=(COUNT_KEYS.indexOf(rk)>=0)?t[rk]:1; } });
+  n.text.sections=sections; n.text.total_sections=Object.keys(sections).length;
+  const lens=[t.characterLen,t.daewoonAvgLen,t.yearlyAvgLen].filter(x=>x);
+  n.text.avg_len=lens.length?Math.round(lens.reduce((a,b)=>a+b,0)/lens.length):0;
+  return n;
+}
+function normRef(raw){
+  const n=emptyNorm();
+  PILLAR_KEYS.forEach(k=>{ const p=raw.saju[k]||{}; if(typeof p==="string") n.pillars[k]=toHanja(p); else n.pillars[k]=toHanja(p.ganji||(p.gan||"")+(p.ji||"")); });
+  const dw=raw.daewoon||{};
+  n.daewoon.start_age=(dw.start_age!==undefined?dw.start_age:(dw.startAge!==undefined?dw.startAge:null));
+  n.daewoon.direction=normDir(dw.direction||""); n.daewoon.count=dw.count||0;
+  const oh=raw.ohaeng||{}; OHAENG_KEYS.forEach(k=>{ n.ohaeng[k]=Number(oh[k]||0); });
+  const sp=raw.sipseong||{}; PILLAR_KEYS.forEach((k,i)=>{ n.sipseong[i]=sp[k]||""; });
+  const sec=raw.interpretation.sections||{};
+  const sections={}; Object.keys(sec).forEach(name=>{ sections[REF2CANON[name]||name]=sec[name]; });
+  n.text.sections=sections; n.text.total_sections=raw.interpretation.total_fields||Object.keys(sections).length;
+  n.text.avg_len=raw.interpretation.avg_len||0;
+  return n;
+}
+function cmpL1(my,ref){
+  // 8자(천간·지지 개별) 비교: p8h 최대 8, 대운 2 → 총 10
+  let p8h=0; const pillars=PILLAR_KEYS.map(k=>{ const a=my.pillars[k], b=ref.pillars[k];
+    const gA=a?a[0]:"", jA=a&&a.length>1?a[1]:"", gB=b?b[0]:"", jB=b&&b.length>1?b[1]:"";
+    const gOk=!!gA&&gA===gB, jOk=!!jA&&jA===jB;
+    if(gOk)p8h++; if(jOk)p8h++;
+    return {k,my:a,ref:b,m:gOk&&jOk,mark:(gOk&&jOk)?"✅":((gOk||jOk)?"⚠️":"❌")}; });
+  const ageM=my.daewoon.start_age===ref.daewoon.start_age, dirM=my.daewoon.direction===ref.daewoon.direction;
+  const dwh=(ageM?1:0)+(dirM?1:0);
+  return {pillars,p8h,dw:{ageM,dirM,myAge:my.daewoon.start_age,refAge:ref.daewoon.start_age,myDir:my.daewoon.direction,refDir:ref.daewoon.direction},dwh,score:Math.round((p8h+dwh)/10*100)};
+}
+function cmpL2(my,ref){
+  let ohh=0; const ohaeng=OHAENG_KEYS.map(k=>{ const m=my.ohaeng[k]===ref.ohaeng[k]; if(m)ohh++; return {k,my:my.ohaeng[k],ref:ref.ohaeng[k],m}; });
+  let sph=0; const sipseong=PILLAR_KEYS.map((k,i)=>{ const m=my.sipseong[i]===ref.sipseong[i]; if(m)sph++; return {k,my:my.sipseong[i],ref:ref.sipseong[i],m}; });
+  return {ohaeng,ohh,sipseong,sph,score:Math.round((ohh+sph)/9*100)};
+}
+function variability(cases){
+  if(cases.length<2) return {score:0};
+  let distinct=0;
+  PILLAR_KEYS.forEach(k=>{ distinct+=new Set(cases.map(c=>c.pillars[k])).size; });
+  for(let i=0;i<4;i++){ distinct+=new Set(cases.map(c=>c.sipseong[i])).size; }
+  OHAENG_KEYS.forEach(k=>{ distinct+=new Set(cases.map(c=>c.ohaeng[k])).size; });
+  return {score:Math.round(distinct/(cases.length*13)*100),distinct,max:cases.length*13};
+}
+function richness(myT,refT){
+  const myS=myT.sections||{}, refS=refT.sections||{};
+  const myNames=Object.keys(myS), refNames=Object.keys(refS);
+  const missing=refNames.filter(x=>myNames.indexOf(x)<0).sort();
+  const common=myNames.filter(x=>refNames.indexOf(x)>=0).sort();
+  const sumInt=o=>Object.values(o).filter(v=>typeof v==="number").reduce((a,b)=>a+b,0);
+  return {myS,refS,missing,common,myTotal:sumInt(myS),refTotal:sumInt(refS),
+          coverage:refNames.length?Math.round(common.length/refNames.length*100):0,
+          myAvg:myT.avg_len,refAvg:refT.avg_len};
+}
+function aggRich(all){
+  const uni=ds=>{ const m={}; ds.forEach(d=>{ Object.keys(d).forEach(k=>{ const v=d[k];
+    if(typeof v==="number") m[k]=(m[k]||0)+v; else if(!(k in m)) m[k]=v; }); }); return m; };
+  const myS=uni(all.map(r=>r.myS)), refS=uni(all.map(r=>r.refS));
+  const missing=Object.keys(refS).filter(x=>!(x in myS)).sort();
+  const common=Object.keys(myS).filter(x=>x in refS).sort();
+  const sumInt=o=>Object.values(o).filter(v=>typeof v==="number").reduce((a,b)=>a+b,0);
+  return {myS,refS,missing,common,extra:Object.keys(myS).filter(x=>!(x in refS)).sort(),
+    coverage:Object.keys(refS).length?Math.round(common.length/Object.keys(refS).length*100):0,
+    myTotal:sumInt(myS),refTotal:sumInt(refS),
+    myAvg:Math.round(all.reduce((a,r)=>a+r.myAvg,0)/all.length),
+    refAvg:Math.round(all.reduce((a,r)=>a+r.refAvg,0)/all.length)};
+}
+
+// 실행
+const ids=[1,2,3], cases=[], myNorms=[];
+const L=[]; const pass=[];
+ids.forEach(cid=>{
+  const myN=normMy(MY[cid]), refN=normRef(REF[cid]);
+  myNorms.push(myN);
+  const l1=cmpL1(myN,refN), l2=cmpL2(myN,refN);
+  cases.push({id:cid,l1,l2});
+  L.push(`CASE${cid}|L1:${l1.score}%|p8:${l1.p8h}/8|dw:${l1.dwh}/2|L2:${l2.score}%|oh:${l2.ohh}/5|sp:${l2.sph}/4|L3:${l1.dw.ageM?'':'age-불일치 '}${l1.dw.dirM?'':'dir-불일치'}`);
+  const exp={1:{l1:100,l2:100},2:{l1:100,l2:100},3:{l1:100,l2:100}};
+  const ok=(l1.score===exp[cid].l1&&l2.score===exp[cid].l2);
+  pass.push(`C${cid}_score:${ok?'PASS':'FAIL'}(L1=${l1.score} L2=${l2.score})`);
+  // 불일치 항목 상세
+  l1.pillars.forEach(p=>{ if(!p.m) L.push(`  CASE${cid} ${p.k}주${p.mark==="⚠️"?'(간·지 부분)':''}: 내=${p.my} vs 표준=${p.ref}`); });
+  if(!l1.dw.ageM) L.push(`  CASE${cid} 대운기산: 내=${l1.dw.myAge}세 vs 표준=${l1.dw.refAge}세`);
+  if(!l1.dw.dirM) L.push(`  CASE${cid} 대운방향: 내=${l1.dw.myDir} vs 표준=${l1.dw.refDir}`);
+  l2.ohaeng.forEach(o=>{ if(!o.m) L.push(`  CASE${cid} 오행${o.k}: 내=${o.my} vs 표준=${o.ref}`); });
+  l2.sipseong.forEach(s=>{ if(!s.m) L.push(`  CASE${cid} ${s.k}십성: 내=${s.my} vs 표준=${s.ref}`); });
+});
+const v=variability(myNorms);
+pass.push(`variability:${v.score===85?'PASS':'FAIL'}(=${v.score}%)`);
+const allR=ids.map((cid,idx)=>richness(myNorms[idx].text,normRef(REF[cid]).text));
+const r=aggRich(allR);
+const missSorted=r.missing.join(',');
+const missExp="보완 아이템";
+const missOk=(missSorted===missExp)&&r.missing.length===1;
+pass.push(`richness_missing:${missOk?'PASS':'FAIL'}(=${r.missing.length}개)`);
+const extraOk=r.extra.join(',')==="십성 상세,오행 보완";
+pass.push(`richness_extra:${extraOk?'PASS':'FAIL'}(=${r.extra.join(',')})`);
+pass.push(`richness_coverage:${r.coverage===94?'PASS':'FAIL'}(=${r.coverage}%)`);
+pass.push(`richness_items:${(r.myTotal===462&&r.refTotal===141)?'PASS':'FAIL'}(my=${r.myTotal} ref=${r.refTotal})`);
+pass.push(`richness_avgLen:${(r.myAvg===326&&r.refAvg===138)?'PASS':'FAIL'}(my=${r.myAvg} ref=${r.refAvg})`);
+L.push(`VARIABILITY:${v.score}% (distinct=${v.distinct}/${v.max})`);
+L.push(`RICHNESS: mySections=${Object.keys(r.myS).length} refSections=${Object.keys(r.refS).length} coverage=${r.coverage}% missing=[${r.missing.join(',')}] common=[${r.common.join(',')}]`);
+L.push(`RICHNESS items: my=${r.myTotal} ref=${r.refTotal} | avgLen my=${r.myAvg} ref=${r.refAvg}`);
+const pCnt=pass.filter(x=>x.indexOf('PASS')>=0).length;
+const fCnt=pass.length-pCnt;
+const out=L.join('\n')+'\n\nCHECKS\n'+pass.join('\n')+`\nFINAL: PASS ${pCnt} / FAIL ${fCnt}`;
+document.getElementById('out').textContent=out;
+document.title='COMPARATOR|'+out.split('\n').join('~');
+</script>
+</body>
+</html>

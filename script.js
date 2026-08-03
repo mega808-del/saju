@@ -16,6 +16,9 @@ let isCompatibilityMode = false;
 let selectedGender2 = 'male';
 let selectedHour2 = '';
 
+// ★ v5.2: 자시 기준 (야자시분일 기본 - 표준 만세력과 동일)
+let selectedJasi = 'yajasi';
+
 let _lastResult = null;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -108,7 +111,7 @@ function setupSingleDualPicker(textInputSel, btnCalSel, hiddenPickerSel) {
 function setupFormEvents() {
     const form = $('#fortuneForm');
 
-    // Calendar Toggle
+    // Calendar Toggle (v5.1: 음력 선택 시 윤달 입력란 표시)
     $('#calendarToggle').addEventListener('click', (e) => {
         const btn = e.target.closest('.cal-btn');
         if (!btn) return;
@@ -119,6 +122,10 @@ function setupFormEvents() {
         if (calHint) {
             calHint.textContent = selectedCal === 'solar' ? '※ 직접 타이핑(예: 19950515) 또는 달력 이미지 클릭 선택' : '※ 음력 생년월일 입력 (동일 사주로 양력 자동 변환)';
         }
+        const leapGroup = $('#intercalationGroup');
+        if (leapGroup) leapGroup.style.display = selectedCal === 'lunar' ? 'block' : 'none';
+        const leapGroup2 = $('#intercalationGroup2');
+        if (leapGroup2) leapGroup2.style.display = selectedCal === 'lunar' ? 'block' : 'none';
     });
 
     // Gender Toggle
@@ -138,6 +145,17 @@ function setupFormEvents() {
         btn.classList.add('active');
         selectedHour = btn.dataset.hour;
     });
+
+    // ★ v5.2: 자시 기준 토글 (야자시분일 / 자정분일)
+    if ($('#jasiToggle')) {
+        $('#jasiToggle').addEventListener('click', (e) => {
+            const btn = e.target.closest('.cal-btn');
+            if (!btn) return;
+            $$('#jasiToggle .cal-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedJasi = btn.dataset.jasi;
+        });
+    }
 
     // Compatibility Mode Toggle
     $('#compatModeToggle').addEventListener('click', (e) => {
@@ -174,7 +192,37 @@ function setupFormEvents() {
         selectedHour2 = btn.dataset.hour;
     });
 
-    // Form Submit
+    // 날짜 유효성 검사 (예: 2023-02-30 방지)
+    function isValidDate(y, m, d) {
+        if (!Number.isInteger(y) || !Number.isInteger(m) || !Number.isInteger(d)) return false;
+        const dt = new Date(y, m - 1, d);
+        return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
+    }
+
+    // v5.1: 공통 사주 계산 헬퍼 (유효성 검사 + 오류 처리 단일화)
+    // v5.2: jasiRule(야자시분일/자정분일) 8번째 파라미터 전달
+    function computeSaju(y, m, d, hour, gender, cal, leap, jasiRule) {
+        if (!isValidDate(y, m, d)) return { ok: false, reason: 'invalid-date' };
+        if (cal === 'lunar' && typeof KoreanLunarCalendar === 'undefined') return { ok: false, reason: 'no-lunar-lib' };
+        try {
+            // ★ v5.2: 야자시분일 선택 시 자시 버튼(0)을 야자시(23)로 해석 (엔진은 원시 hour 그대로 사용)
+            let effHour = hour;
+            if (String(hour) === '0' && (jasiRule || 'yajasi') === 'yajasi') effHour = '23';
+            return { ok: true, result: window.calculateSaju(y, m, d, effHour, gender, cal, !!leap, jasiRule || 'yajasi') };
+        } catch (err) {
+            console.error('사주 계산 오류:', err);
+            return { ok: false, reason: 'calc-error' };
+        }
+    }
+
+    function sajuErrorMessage(reason, who) {
+        const prefix = who ? who + ' ' : '';
+        if (reason === 'invalid-date') return prefix + '생년월일이 존재하지 않는 날짜입니다. 확인해주세요.';
+        if (reason === 'no-lunar-lib') return '음력 변환 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인해주세요.';
+        return prefix + '사주 계산 중 오류가 발생했습니다. 입력값을 확인해주세요.';
+    }
+
+    // Form Submit (v5.1: 사전 검증 후 계산 - 부분 상태 방지 + 윤달 연동)
     form.addEventListener('submit', (e) => {
         e.preventDefault();
         const name = $('#userName').value.trim();
@@ -184,31 +232,44 @@ function setupFormEvents() {
         if (!birthVal || birthVal.length < 10) { showToast('생년월일을 YYYY-MM-DD (예: 19950515) 형식으로 입력 혹은 달력에서 선택해주세요.', '⚠️'); return; }
 
         const [y, m, d] = birthVal.split('-').map(Number);
+        const isIntercalation = !!(selectedCal === 'lunar' && $('#intercalationToggle') && $('#intercalationToggle').checked);
 
-        // 1. Calculate Saju (Lunar to Solar converted automatically inside calculateSaju if selectedCal === 'lunar')
-        if (selectedCal === 'lunar' && typeof KoreanLunarCalendar === 'undefined') {
-            showToast('음력 변환 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인해주세요.', '⚠️');
-        }
-        const result = window.calculateSaju(y, m, d, selectedHour, selectedGender, selectedCal);
-        _lastResult = { name, year: y, month: m, day: d, gender: selectedGender, cal: selectedCal, hour: selectedHour, result };
-
-        displayResults(name, y, m, d, result);
-
-        // 2. Compatibility Mode if enabled
+        // 1. 궁합 모드: 상대방 입력 사전 검증 (검증 통과 전에는 아무 상태도 변경하지 않음)
+        let name2 = '', y2 = 0, m2 = 0, d2 = 0, isIntercalation2 = isIntercalation, c2 = null;
         if (isCompatibilityMode) {
-            const name2 = $('#userName2').value.trim();
+            name2 = $('#userName2').value.trim();
             const birth2 = $('#birthDateInput2').value.trim();
-            if (name2 && birth2 && birth2.length >= 10) {
-                const [y2, m2, d2] = birth2.split('-').map(Number);
-                const result2 = window.calculateSaju(y2, m2, d2, selectedHour2, selectedGender2, selectedCal);
-                const compat = window.calculateCompatibility(result, result2);
-                _lastResult.compat = { name2, result: result2, compat };
-                renderCompatibility(name, result, name2, result2, compat);
-                showToast(`${name}님과 ${name2}님의 궁합을 분석했습니다!`, '💑');
-            } else {
+            if (!name2 || !birth2 || birth2.length < 10) {
                 showToast('궁합 모드입니다. 상대방 정보도 입력해주세요.', '⚠️');
                 return;
             }
+            [y2, m2, d2] = birth2.split('-').map(Number);
+            isIntercalation2 = !!(selectedCal === 'lunar' && $('#intercalationToggle2') && $('#intercalationToggle2').checked);
+            c2 = computeSaju(y2, m2, d2, selectedHour2, selectedGender2, selectedCal, isIntercalation2, selectedJasi);
+            if (!c2.ok) {
+                showToast(sajuErrorMessage(c2.reason, '상대방'), '⚠️');
+                return;
+            }
+        }
+
+        // 2. 본인 사주 계산
+        const c1 = computeSaju(y, m, d, selectedHour, selectedGender, selectedCal, isIntercalation, selectedJasi);
+        if (!c1.ok) {
+            showToast(sajuErrorMessage(c1.reason, ''), '⚠️');
+            return;
+        }
+        const result = c1.result;
+        _lastResult = { name, year: y, month: m, day: d, gender: selectedGender, cal: selectedCal, hour: selectedHour, isIntercalation, jasi: selectedJasi, result };
+
+        displayResults(name, y, m, d, result);
+
+        // 3. 궁합 결과 표시
+        if (isCompatibilityMode && c2) {
+            const result2 = c2.result;
+            const compat = window.calculateCompatibility(result, result2);
+            _lastResult.compat = { name2, year: y2, month: m2, day: d2, gender: selectedGender2, hour: selectedHour2, isIntercalation: isIntercalation2, result: result2, compat };
+            renderCompatibility(name, result, name2, result2, compat);
+            showToast(`${name}님과 ${name2}님의 궁합을 분석했습니다!`, '💑');
         } else {
             $('#compatResultContainer').style.display = 'none';
         }
@@ -252,7 +313,8 @@ function displayResults(name, year, month, day, result) {
     
     let birthStr = `양력 ${solarDate.year}년 ${solarDate.month}월 ${solarDate.day}일`;
     if (lunarDate) {
-        birthStr += ` (음력 ${lunarDate.year}년 ${lunarDate.month}월 ${lunarDate.day}일)`;
+        const leapMark = lunarDate.intercalation ? '(윤)' : '';
+        birthStr += ` (음력 ${lunarDate.year}년 ${lunarDate.month}월${leapMark} ${lunarDate.day}일)`;
     }
     $('#profileBirth').textContent = birthStr;
     $('#profileInitials').textContent = name.charAt(0);
@@ -274,7 +336,7 @@ function displayResults(name, year, month, day, result) {
     });
     $('#sajuPillars').innerHTML = pillarsHtml;
 
-    // 2. 용신 및 격국 분석
+    // 2. 용신 및 격국 분석 (v5.0: 개인별 동적 해설 포함)
     const yd = result.yongshinData;
     $('#yongshinSection').innerHTML = `
         <div style="font-size: 1.05rem; font-weight: 800; color: var(--gold-bright); margin-bottom: 6px;">
@@ -284,6 +346,10 @@ function displayResults(name, year, month, day, result) {
             일간 <strong>${dayGan.hangul}(${dayGan.name})</strong>의 기운 상태를 종합한 처방 오행입니다.
         </div>
         <div class="sipseong-detail-grid">
+            ${result.gyeokguk ? `<div class="sipseong-detail-item">
+                <span class="sipseong-detail-label">🎯 격국</span>
+                <span class="sipseong-detail-text">${result.gyeokguk}</span>
+            </div>` : ''}
             <div class="sipseong-detail-item">
                 <span class="sipseong-detail-label">🔑 용신</span>
                 <span class="sipseong-detail-text">${yd.yongshin}</span>
@@ -293,6 +359,9 @@ function displayResults(name, year, month, day, result) {
                 <span class="sipseong-detail-text">${yd.heeshin}</span>
             </div>
         </div>
+        ${result.gyeokgukDesc ? `<div style="margin-top:8px; font-size:0.82rem; color:var(--text-secondary); line-height:1.6;">🎯 ${result.gyeokguk} — ${result.gyeokgukDesc}</div>` : ''}
+        ${yd.desc ? `<div style="margin-top:12px; padding:12px 14px; border-left:3px solid var(--gold-bright); background:rgba(241,196,15,0.06); border-radius:8px; font-size:0.85rem; line-height:1.7; color:var(--text-primary);">${yd.desc}</div>` : ''}
+        ${result.isYajasi ? `<div style="margin-top:8px; font-size:0.78rem; color:#ec4899;">🌙 야자시(23시~24시) 출생으로 판정되어 다음날 일주를 기준으로 계산했습니다.</div>` : ''}
     `;
 
     // 3. 대운 (Daewoon)
@@ -373,6 +442,13 @@ function renderOhaeng(ohaengCount, dayGan) {
         `;
     });
     html += '</div>';
+
+    // v5.1: 오행 보충 조언 (입력값 기반 동적 문장)
+    if (window.getOhaengAdvice) {
+        const advice = window.getOhaengAdvice(ohaengCount, dayGan);
+        html += `<div class="ohaeng-advice">💡 ${advice}</div>`;
+    }
+
     $('#ohaengSection').innerHTML = html;
 
     setTimeout(() => {
@@ -421,11 +497,11 @@ function renderSipseong(pillarsData, sipseongs) {
     $('#sipseongSection').innerHTML = html;
 }
 
-/* ─── 12운성 / 12신살 렌더링 ─── */
+/* ─── 12운성 / 12신살 렌더링 (v5.0: 개인별 의미 해설 동적 조합) ─── */
 function renderExtraAnalysis(result) {
     const pillarNames = ['년주', '월주', '일주', '시주'];
     let html = '<div class="sipseong-detail-grid">';
-    
+
     result.wunseongs.forEach((w, i) => {
         html += `
             <div class="sipseong-detail-item">
@@ -435,6 +511,85 @@ function renderExtraAnalysis(result) {
         `;
     });
     html += '</div>';
+
+    // 12운성 의미 해설
+    if (result.wunseongDetails) {
+        html += '<div class="sipseong-detail-box" style="margin-top:14px;">';
+        html += '<div class="sipseong-detail-title">🌱 12운성 해설</div>';
+        html += '<div class="sipseong-detail-grid">';
+        result.wunseongDetails.forEach((w, i) => {
+            html += `
+                <div class="sipseong-detail-item">
+                    <span class="sipseong-detail-label">${pillarNames[i]} · ${w.name}</span>
+                    <span class="sipseong-detail-text">${w.meaning}</span>
+                </div>
+            `;
+        });
+        html += '</div></div>';
+    }
+
+    // 12신살 의미 해설
+    if (result.sinsalDetails) {
+        html += '<div class="sipseong-detail-box" style="margin-top:14px;">';
+        html += '<div class="sipseong-detail-title">⚡ 12신살 해설</div>';
+        html += '<div class="sipseong-detail-grid">';
+        result.sinsalDetails.forEach((s, i) => {
+            html += `
+                <div class="sipseong-detail-item">
+                    <span class="sipseong-detail-label">${pillarNames[i]} · ${s.name}</span>
+                    <span class="sipseong-detail-text">${s.meaning}</span>
+                </div>
+            `;
+        });
+        html += '</div></div>';
+    }
+
+    // ★ v5.2: 12신살 전체표 (년지 기준 12지지)
+    if (result.allSinsal) {
+        html += '<div class="sipseong-detail-box" style="margin-top:14px;">';
+        html += '<div class="sipseong-detail-title">🗺️ 12신살 전체표 (년지 기준)</div>';
+        html += '<div class="sinsal-full-grid">';
+        result.allSinsal.forEach(s => {
+            html += `
+                <div class="sinsal-full-item">
+                    <div class="sinsal-full-ji">${s.jiHangul}(${s.ji})</div>
+                    <div class="sinsal-full-name">${s.sal}</div>
+                    <div class="sinsal-full-mean">${s.meaning}</div>
+                </div>
+            `;
+        });
+        html += '</div></div>';
+    }
+
+    // ★ v5.2: 형·충·파·해·합 상세
+    if (result.hyeongchungDetails && result.hyeongchungDetails.length > 0) {
+        html += '<div class="sipseong-detail-box" style="margin-top:14px;">';
+        html += '<div class="sipseong-detail-title">⚔️ 형·충·파·해·합</div>';
+        result.hyeongchungDetails.forEach(d => {
+            html += `<div class="sipseong-detail-item" style="margin-top:8px;"><span class="sipseong-detail-label">${d.a} ↔ ${d.b}</span><span class="sipseong-detail-text">${d.text}</span></div>`;
+        });
+        html += '</div>';
+    } else {
+        html += '<div class="sipseong-detail-box" style="margin-top:14px;">';
+        html += '<div class="sipseong-detail-title">⚔️ 형·충·파·해·합</div>';
+        html += '<div class="sipseong-detail-text">명식 내부에 특별한 합·충·형·파·해 관계가 없습니다. 비교적 안정적인 구조입니다.</div></div>';
+    }
+
+    // ★ v5.2: 육친관계
+    if (result.yukchinDetails) {
+        html += '<div class="sipseong-detail-box" style="margin-top:14px;">';
+        html += '<div class="sipseong-detail-title">👨‍👩‍👧‍👦 육친관계</div>';
+        html += '<div class="sipseong-detail-grid">';
+        result.yukchinDetails.forEach((y, i) => {
+            html += `
+                <div class="sipseong-detail-item">
+                    <span class="sipseong-detail-label">${pillarNames[i]} · ${y.sipseong}</span>
+                    <span class="sipseong-detail-text"><strong>${y.yukchin}</strong> — ${y.desc}</span>
+                </div>
+            `;
+        });
+        html += '</div></div>';
+    }
     $('#extraAnalysisSection').innerHTML = html;
 }
 
@@ -522,7 +677,8 @@ function renderYearNav(fortunes) {
     });
     nav.innerHTML = html;
 
-    nav.addEventListener('click', (e) => {
+    // v5.1: onclick 재할당으로 중복 리스너 누적 방지 (재제출 시에도 1개만 동작)
+    nav.onclick = (e) => {
         const btn = e.target.closest('.year-nav-btn');
         if (!btn) return;
         $$('.year-nav-btn').forEach(b => b.classList.remove('active'));
@@ -538,7 +694,7 @@ function renderYearNav(fortunes) {
             cards[index].classList.add('highlight-card');
             cards[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
-    });
+    };
 }
 
 function renderYearlyFortune(fortunes) {
@@ -576,6 +732,18 @@ function renderYearlyFortune(fortunes) {
                             <div class="fortune-cat-label">🏢 직장운</div>
                             <div class="fortune-cat-text">${f.career}</div>
                         </div>
+                        <div class="fortune-cat" style="border-left-color: #9b59b6;">
+                            <div class="fortune-cat-label">📚 학업운</div>
+                            <div class="fortune-cat-text">${f.academic}</div>
+                        </div>
+                        <div class="fortune-cat" style="border-left-color: #f39c12;">
+                            <div class="fortune-cat-label">💵 금전운</div>
+                            <div class="fortune-cat-text">${f.money}</div>
+                        </div>
+                        <div class="fortune-cat" style="border-left-color: #16a085;">
+                            <div class="fortune-cat-label">🤝 인덕운</div>
+                            <div class="fortune-cat-text">${f.luck}</div>
+                        </div>
                         <div class="fortune-cat" style="border-left-color: var(--gold-light); background: rgba(241, 196, 15, 0.08);">
                             <div class="fortune-cat-label">📌 조언</div>
                             <div class="fortune-cat-text">${f.advice}</div>
@@ -610,15 +778,73 @@ function checkSavedData() {
     }
 }
 
+function setActiveToggle(selector, value, dataKey) {
+    $$(selector).forEach(b => {
+        b.classList.toggle('active', String(b.dataset[dataKey]) === String(value));
+    });
+}
+
 function loadSavedData() {
     const raw = localStorage.getItem('lee_saju_data');
     if (!raw) return;
-    const data = JSON.parse(raw);
+    let data;
+    try { data = JSON.parse(raw); } catch (e) { return; }
+
     $('#userName').value = data.name || '';
     if (data.year && data.month && data.day) {
         const formatted = `${data.year}-${String(data.month).padStart(2, '0')}-${String(data.day).padStart(2, '0')}`;
         $('#birthDateInput').value = formatted;
         $('#birthDateHidden').value = formatted;
     }
+
+    // v5.1: 성별/달력/시간/윤달까지 저장된 값 그대로 복원 (재조회 결과 불일치 방지)
+    if (data.gender) { selectedGender = data.gender; setActiveToggle('#genderToggle .gender-btn', data.gender, 'gender'); }
+    if (data.cal) {
+        selectedCal = data.cal;
+        setActiveToggle('#calendarToggle .cal-btn', data.cal, 'cal');
+        const leapGroup = $('#intercalationGroup');
+        if (leapGroup) leapGroup.style.display = selectedCal === 'lunar' ? 'block' : 'none';
+        const calHint = $('#calHint');
+        if (calHint) calHint.textContent = selectedCal === 'solar' ? '※ 직접 타이핑(예: 19950515) 또는 달력 이미지 클릭 선택' : '※ 음력 생년월일 입력 (동일 사주로 양력 자동 변환)';
+    }
+    if (data.hour !== undefined && data.hour !== null) {
+        selectedHour = String(data.hour);
+        setActiveToggle('#timeGrid .time-btn', String(data.hour), 'hour');
+    }
+    if (data.isIntercalation && $('#intercalationToggle')) {
+        $('#intercalationToggle').checked = !!data.isIntercalation;
+    }
+    // ★ v5.2: 자시 기준 복원
+    if (data.jasi) {
+        selectedJasi = data.jasi;
+        if ($('#jasiToggle')) setActiveToggle('#jasiToggle .cal-btn', data.jasi, 'jasi');
+    }
+
+    // 궁합 모드 복원
+    if (data.compat && data.compat.name2) {
+        isCompatibilityMode = true;
+        setActiveToggle('#compatModeToggle .toggle-btn', 'couple', 'mode');
+        const compatFields = $('#compatFields');
+        if (compatFields) compatFields.style.display = 'block';
+        const submitText = $('#btnSubmit .btn-submit-text');
+        if (submitText) submitText.textContent = '💑 궁합 보기';
+        $('#userName2').value = data.compat.name2 || '';
+        if (data.compat.year && data.compat.month && data.compat.day) {
+            const f = `${data.compat.year}-${String(data.compat.month).padStart(2, '0')}-${String(data.compat.day).padStart(2, '0')}`;
+            $('#birthDateInput2').value = f;
+            $('#birthDateHidden2').value = f;
+        }
+        if (data.compat.gender) { selectedGender2 = data.compat.gender; setActiveToggle('#genderToggle2 .gender-btn', data.compat.gender, 'gender'); }
+        if (data.compat.hour !== undefined && data.compat.hour !== null) {
+            selectedHour2 = String(data.compat.hour);
+            setActiveToggle('#timeGrid2 .time-btn', String(data.compat.hour), 'hour');
+        }
+        if (data.compat.isIntercalation && $('#intercalationToggle2')) {
+            $('#intercalationToggle2').checked = !!data.compat.isIntercalation;
+        }
+        const leapGroup2 = $('#intercalationGroup2');
+        if (leapGroup2) leapGroup2.style.display = selectedCal === 'lunar' ? 'block' : 'none';
+    }
+
     showToast(`${data.name}님의 저장된 정보를 불러왔습니다.`, '📂');
 }
