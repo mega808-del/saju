@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<title>연도별 운세 버튼 버그 재현 테스트</title>
+<style>
+  body { font-family: sans-serif; background: #0a0a1a; color: #eee; padding: 20px; }
+  h2 { color: #f1c40f; }
+  .ok { color: #2ecc71; font-weight: bold; }
+  .fail { color: #e74c3c; font-weight: bold; }
+  pre { background: #111; padding: 12px; border-radius: 8px; line-height: 1.7; overflow-x: auto; }
+</style>
+</head>
+<body>
+<h1>연도별 운세 버튼 오류 재현 시뮬레이션</h1>
+<pre id="out">실행 중...</pre>
+<script>
+(function () {
+    const YEAR0 = 2026;
+    const out = [];
+
+    // ── 현재(버그) 로직: 위치 인덱스로 카드 찾기 + insertBefore 이동 ──
+    function simulateCurrent(clicks) {
+        let dom = Array.from({ length: 15 }, (_, i) => YEAR0 + i);
+        const log = [];
+        for (const idx of clicks) {
+            const cards = [...dom];                      // Array.from($$('.fortune-year-card'))
+            const moved = cards[idx];
+            dom = [moved, ...dom.filter(c => c !== moved)];
+            const expected = YEAR0 + idx;
+            const top = dom[0];
+            log.push({ expected, top, ok: top === expected });
+        }
+        return log;
+    }
+
+    // ── 수정안: data-year 속성으로 대상 카드 탐색 ──
+    function simulateFixed(clicks) {
+        let dom = Array.from({ length: 15 }, (_, i) => YEAR0 + i);
+        const log = [];
+        for (const idx of clicks) {
+            const expected = YEAR0 + idx;
+            const target = dom.find(y => y === expected); // data-year 매칭
+            dom = [target, ...dom.filter(c => c !== target)];
+            const top = dom[0];
+            log.push({ expected, top, ok: top === expected });
+        }
+        return log;
+    }
+
+    const scenarios = [
+        ['시나리오 A : 2031년(5) → 2028년(2)', [5, 2]],
+        ['시나리오 B : 2031년(5) → 2026년(0) → 2031년(5) → 2033년(7)', [5, 0, 5, 7]],
+        ['시나리오 C : 연속 클릭 2027→2028→2029→2030→2031', [1, 2, 3, 4, 5]]
+    ];
+
+    let total = 0, curFail = 0, fixFail = 0;
+    scenarios.forEach(([name, clicks]) => {
+        out.push('■ ' + name);
+        const cur = simulateCurrent(clicks);
+        const fix = simulateFixed(clicks);
+        out.push('  [현재 로직]  (버튼 → 맨 위로 올라간 카드)');
+        cur.forEach(l => {
+            total++;
+            if (!l.ok) curFail++;
+            out.push(`     ${l.expected}년 버튼 → ${l.top}년 카드  ${l.ok ? '<span class="ok">정상</span>' : '<span class="fail">✗ 불일치</span>'}`);
+        });
+        out.push('  [수정안 로직]  (버튼 → 맨 위로 올라간 카드)');
+        fix.forEach(l => {
+            total++;
+            if (!l.ok) fixFail++;
+            out.push(`     ${l.expected}년 버튼 → ${l.top}년 카드  ${l.ok ? '<span class="ok">정상</span>' : '<span class="fail">✗ 불일치</span>'}`);
+        });
+        out.push('');
+    });
+
+    out.push('══════════════════════════════════════');
+    out.push(`총 클릭 ${total}회 → 현재 로직 오류 <span class="fail">${curFail}회</span> / 수정안 오류 <span class="ok">${fixFail}회</span>`);
+    out.push(curFail > 0
+        ? '<b>결론: 현재 로직에 버그가 재현되었습니다. 수정으로 해결 가능합니다.</b>'
+        : '오류 없음');
+    document.getElementById('out').innerHTML = out.join('\n');
+})();
+</script>
+</body>
+</html>

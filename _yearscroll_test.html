@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>연도별 운세 라벨 가림 검증</title>
+<link rel="stylesheet" href="styles.css" />
+<style>
+    body { padding: 0; margin: 0; }
+    .test-container { max-width: 680px; margin: 0 auto; padding: 20px 12px 200px; }
+    .spacer { height: 400px; }
+    #result { position: fixed; bottom: 10px; left: 10px; right: 10px; z-index: 99999;
+        background: #000; border: 2px solid #f1c40f; border-radius: 10px; padding: 10px;
+        font-size: 12px; line-height: 1.6; color: #eee; max-height: 45vh; overflow: auto; }
+    #result .ok { color: #2ecc71; font-weight: bold; }
+    #result .fail { color: #e74c3c; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<!-- 실제 index.html과 동일한 고정 툴바 -->
+<div class="zoom-toolbar" id="zoomToolbar">
+    <div class="zoom-toolbar-inner">
+        <button type="button" class="zoom-btn" id="btnZoomIn">🔍+</button>
+        <button type="button" class="zoom-btn" id="btnZoomOut">🔍-</button>
+        <button type="button" class="zoom-btn" id="btnZoomReset">↺ 리셋</button>
+        <span class="zoom-badge" id="zoomScaleBadge">100%</span>
+        <span class="toolbar-divider"></span>
+        <button type="button" class="font-btn" id="btnFontInc">🔤+</button>
+        <button type="button" class="font-btn" id="btnFontDec">🔤-</button>
+        <span class="zoom-badge" id="fontSizeBadge">100%</span>
+    </div>
+</div>
+
+<div class="test-container">
+    <div class="spacer"></div>
+
+    <!-- index.html과 동일 구조: 라벨 → yearNav → yearlyFortune -->
+    <div class="section-label reveal" id="yearlyLabel">
+        <span class="label-line"></span>
+        <span class="label-text">연도별 운세</span>
+        <span class="label-line"></span>
+    </div>
+
+    <div class="year-nav" id="yearNav"></div>
+    <div class="yearly-fortune" id="yearlyFortune"></div>
+
+    <div class="spacer"></div>
+</div>
+
+<div id="result">검증 실행 중...</div>
+
+<script>
+(function () {
+    const YEAR0 = 2026, COUNT = 15;
+    const nav = document.getElementById('yearNav');
+    const container = document.getElementById('yearlyFortune');
+    const out = [];
+
+    // index.html과 동일한 카드/버튼 생성
+    let html = '';
+    for (let i = 0; i < COUNT; i++) {
+        const y = YEAR0 + i;
+        html += `<button type="button" class="year-nav-btn${i === 0 ? ' active' : ''}" data-index="${i}">${y}년</button>`;
+    }
+    nav.innerHTML = html;
+
+    let cardsHtml = '';
+    for (let i = 0; i < COUNT; i++) {
+        const y = YEAR0 + i;
+        cardsHtml += `
+            <div class="fortune-year-card show" data-year="${y}">
+                <div class="fortune-year-header">
+                    <span class="fortune-year-num">${y}년</span><span class="fortune-age">만 ${y - 1992}세</span>
+                </div>
+                <div class="fortune-year-body"><div class="fortune-cat"><div class="fortune-cat-label">🔮 총운</div><div class="fortune-cat-text">${y}년 운세 내용</div></div></div>
+            </div>`;
+    }
+    container.innerHTML = cardsHtml;
+
+    // ★ 수정안 로직 (실제 script.js에 적용할 것과 동일)
+    function fixedHandler(e) {
+        const btn = e.target.closest('.year-nav-btn');
+        if (!btn) return;
+        document.querySelectorAll('.year-nav-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const targetYear = String(parseInt(btn.textContent));
+        const target = Array.from(container.querySelectorAll('.fortune-year-card'))
+            .find(c => c.dataset.year === targetYear);
+        if (target) {
+            container.insertBefore(target, container.firstChild);
+            document.querySelectorAll('.fortune-year-card').forEach(c => c.classList.remove('highlight-card'));
+            target.classList.add('highlight-card');
+            const toolbar = document.getElementById('zoomToolbar');
+            const label = nav.previousElementSibling;
+            if (label) {
+                const gap = 10;
+                const offset = (toolbar ? toolbar.getBoundingClientRect().bottom : 50) + gap;
+                label.style.scrollMarginTop = offset + 'px';
+                label.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                nav.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+    }
+    nav.onclick = fixedHandler;
+
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    async function measure(step, expectedIdx) {
+        const toolbar = document.getElementById('zoomToolbar').getBoundingClientRect();
+        const label = document.getElementById('yearlyLabel').getBoundingClientRect();
+        const navRect = nav.getBoundingClientRect();
+        const header = container.querySelector('.fortune-year-card .fortune-year-header').getBoundingClientRect();
+        const firstCardYear = container.querySelector('.fortune-year-card').dataset.year;
+        const expectedYear = String(YEAR0 + expectedIdx);
+        const notCovered = label.top >= toolbar.bottom - 1; // -1: 반올림 허용
+        const orderOk = navRect.top >= label.bottom - 1 && header.top >= navRect.bottom - 1;
+        const cardOk = firstCardYear === expectedYear;
+        out.push(`■ ${step}`);
+        out.push(`  툴바(리셋/100% 바)  : top=${toolbar.top.toFixed(1)} bottom=${toolbar.bottom.toFixed(1)}`);
+        out.push(`  연도별 운세 라벨    : top=${label.top.toFixed(1)} bottom=${label.bottom.toFixed(1)}  ${notCovered ? '<span class="ok">✓ 툴바에 안 가려짐</span>' : '<span class="fail">✗ 툴바에 가려짐</span>'}`);
+        out.push(`  연도 버튼(#yearNav) : top=${navRect.top.toFixed(1)}  ${navRect.top >= label.bottom - 1 ? '<span class="ok">✓ 라벨 아래에 보임</span>' : '<span class="fail">✗ 순서 오류</span>'}`);
+        out.push(`  클릭 연도 카드      : data-year=${firstCardYear} (기대 ${expectedYear}) 헤더 top=${header.top.toFixed(1)}  ${orderOk && cardOk ? '<span class="ok">✓ 클릭 연도가 버튼 아래에 보임</span>' : '<span class="fail">✗ 오류</span>'}`);
+        out.push('');
+        return notCovered && orderOk && cardOk;
+    }
+
+    async function run() {
+        const ok1 = await testClick('5', '수정안 로직 1 (2031년 클릭)');
+        const ok2 = await testClick('9', '수정안 로직 2 (2035년 클릭 - 카드 본문에서 재클릭)');
+        const ok3 = await testClick('5', '수정안 로직 3 (2031년 재클릭)');
+
+        out.push('══════════════════════════════════════');
+        out.push(ok1 && ok2 && ok3 ? '<b class="ok">결론: 수정안 정상 — 라벨이 툴바에 가려지지 않고, 버튼→클릭연도 순서로 표시됩니다.</b>' : '<b class="fail">결론: 오류 발생</b>');
+        document.getElementById('result').innerHTML = out.join('<br>');
+    }
+
+    async function testClick(idx, name) {
+        // 스크롤을 아래(카드 본문)로 내린 뒤 버튼 클릭 → 수정안 스크롤이 동작하는지
+        container.scrollIntoView({ block: 'end' });
+        await sleep(400);
+        document.querySelector(`[data-index="${idx}"]`).click();
+        await sleep(1600);
+        return measure(name, parseInt(idx));
+    }
+
+    window.addEventListener('load', () => setTimeout(run, 300));
+})();
+</script>
+</body>
+</html>

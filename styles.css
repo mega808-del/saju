@@ -766,7 +766,7 @@ body {
 .compatibility-item-text { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5; }
 
 /* 15년 세운 버튼 & 강조 카드 */
-.year-nav { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-bottom: 16px; }
+.year-nav { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-bottom: 16px; scroll-margin-top: 10px; }
 .year-nav-btn { padding: 6px 10px; background: var(--bg-inset); border: 1.5px solid rgba(241, 196, 15, 0.2); border-radius: var(--radius-sm); color: var(--gold-light); font-size: 0.78rem; font-weight: 700; cursor: pointer; }
 .year-nav-btn.active { background: linear-gradient(135deg, var(--gold-dark), var(--gold-bright)); color: var(--bg-deep); font-weight: 900; }
 

@@ -678,6 +678,11 @@ function renderYearNav(fortunes) {
     nav.innerHTML = html;
 
     // v5.1: onclick 재할당으로 중복 리스너 누적 방지 (재제출 시에도 1개만 동작)
+    // ★ v5.3 수정: 위치 인덱스(cards[index]) 대신 카드의 data-year 속성으로 대상 카드 탐색
+    //   - insertBefore로 카드 순서가 바뀐 뒤에도 클릭한 연도의 카드를 정확히 맨 위로 이동
+    // ★ v5.3-3 수정: 스크롤 대상을 '연도별 운세' 라벨(nav 바로 위)로 지정
+    //   - 고정 툴바(리셋/100% 바)에 라벨이 가려지지 않도록 툴바 높이를 실측해 아래 10px 간격으로 정렬
+    //   - 화면에 '연도별 운세' 라벨 → 15개 연도 버튼 → 클릭한 연도 운세 순서로 모두 표시됨
     nav.onclick = (e) => {
         const btn = e.target.closest('.year-nav-btn');
         if (!btn) return;
@@ -686,13 +691,26 @@ function renderYearNav(fortunes) {
 
         const index = parseInt(btn.dataset.index);
         const container = $('#yearlyFortune');
-        const cards = Array.from($$('.fortune-year-card'));
+        // 버튼은 항상 fortunes 배열에서 생성되므로 fortunes[index]는 항상 존재
+        const targetYear = String(fortunes[index].year);
+        const target = Array.from(container.querySelectorAll('.fortune-year-card'))
+            .find(c => c.dataset.year === targetYear);
 
-        if (cards[index]) {
-            container.insertBefore(cards[index], container.firstChild);
-            cards.forEach(c => c.classList.remove('highlight-card'));
-            cards[index].classList.add('highlight-card');
-            cards[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (target) {
+            container.insertBefore(target, container.firstChild);
+            $$('.fortune-year-card').forEach(c => c.classList.remove('highlight-card'));
+            target.classList.add('highlight-card');
+            // '연도별 운세' 라벨(연도 버튼 바로 위)을 툴바 아래 간격을 두고 보이도록 스크롤
+            const toolbar = $('#zoomToolbar');
+            const label = nav.previousElementSibling;
+            if (label && label.classList.contains('section-label')) {
+                const gap = 10;
+                const offset = (toolbar ? toolbar.getBoundingClientRect().bottom : 50) + gap;
+                label.style.scrollMarginTop = offset + 'px';
+                label.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                nav.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }
     };
 }
