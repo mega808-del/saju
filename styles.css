@@ -595,6 +595,33 @@ body {
     cursor: pointer;
 }
 
+/* ★ v5.3: 운세 조회 기준일시 배너 (결과 화면 최상단) */
+.base-datetime {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 16px;
+    padding: 9px 12px;
+    background: linear-gradient(135deg, var(--bg-card), var(--bg-elevated));
+    border: 1px solid rgba(241, 196, 15, 0.35);
+    border-radius: var(--radius-md);
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-align: center;
+    line-height: 1.5;
+    box-shadow: 0 0 14px rgba(241, 196, 15, 0.08);
+}
+.base-datetime strong {
+    color: var(--gold-bright);
+    font-weight: 800;
+    text-shadow: var(--gold-text-glow);
+}
+.base-dt-icon { font-size: 0.9rem; }
+.base-dt-divider { color: var(--gold-dark); opacity: 0.6; margin: 0 2px; }
+.base-dt-year { color: var(--gold-light); font-weight: 700; }
+
 .section-label {
     display: flex;
     align-items: center;

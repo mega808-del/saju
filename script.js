@@ -31,7 +31,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Toolbar Buttons
     $('#btnZoomIn').addEventListener('click', () => pinchEngine.zoomIn(0.25));
     $('#btnZoomOut').addEventListener('click', () => pinchEngine.zoomOut(0.25));
-    $('#btnZoomReset').addEventListener('click', () => pinchEngine.resetZoom());
+    // ★ v5.4: ↺ 리셋 = 줌 리셋 + 입력 폼 초기화 (+ 결과 화면이면 입력 폼으로 복귀)
+    $('#btnZoomReset').addEventListener('click', () => {
+        pinchEngine.resetZoom();
+        resetFormInputs();
+        const resSec = $('#resultSection');
+        if (resSec && resSec.style.display !== 'none') {
+            resSec.style.display = 'none';
+            $('#formSection').style.display = 'flex';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    });
     $('#btnFontInc').addEventListener('click', () => pinchEngine.changeFontSize(0.1));
     $('#btnFontDec').addEventListener('click', () => pinchEngine.changeFontSize(-0.1));
 
@@ -301,6 +311,56 @@ function setupFormEvents() {
 }
 
 /* ═══════════════════════════════════════════
+   입력 폼 초기화 (v5.4: ↺ 리셋 버튼)
+   - 이름/생년월일/시간/성별/달력/윤달/궁합/자시 기준 전부 기본값으로 복원
+   - localStorage 저장 데이터는 지우지 않음
+   ═══════════════════════════════════════════ */
+function resetFormInputs() {
+    // 상태 변수 기본값
+    selectedGender = 'male';
+    selectedCal = 'solar';
+    selectedHour = '';
+    selectedJasi = 'yajasi';
+    isCompatibilityMode = false;
+    selectedGender2 = 'male';
+    selectedHour2 = '';
+    _lastResult = null;
+
+    // 입력 필드 초기화
+    $('#userName').value = '';
+    $('#birthDateInput').value = '';
+    $('#birthDateHidden').value = '';
+    $('#userName2').value = '';
+    $('#birthDateInput2').value = '';
+    $('#birthDateHidden2').value = '';
+
+    // 토글 활성 상태 기본값
+    setActiveToggle('#genderToggle .gender-btn', 'male', 'gender');
+    setActiveToggle('#genderToggle2 .gender-btn', 'male', 'gender');
+    setActiveToggle('#calendarToggle .cal-btn', 'solar', 'cal');
+    if ($('#jasiToggle')) setActiveToggle('#jasiToggle .cal-btn', 'yajasi', 'jasi');
+    setActiveToggle('#timeGrid .time-btn', '', 'hour');
+    setActiveToggle('#timeGrid2 .time-btn', '', 'hour');
+    setActiveToggle('#compatModeToggle .toggle-btn', 'single', 'mode');
+
+    // 달력 힌트·윤달·궁합 UI 복원
+    const calHint = $('#calHint');
+    if (calHint) calHint.textContent = '※ 직접 타이핑(예: 19950515) 또는 달력 이미지 클릭 선택';
+    ['#intercalationGroup', '#intercalationGroup2'].forEach(sel => {
+        const g = $(sel);
+        if (g) g.style.display = 'none';
+    });
+    const it1 = $('#intercalationToggle'); if (it1) it1.checked = false;
+    const it2 = $('#intercalationToggle2'); if (it2) it2.checked = false;
+    const compatFields = $('#compatFields');
+    if (compatFields) compatFields.style.display = 'none';
+    const submitText = $('#btnSubmit .btn-submit-text');
+    if (submitText) submitText.textContent = '🔮 운세 보기';
+
+    showToast('입력 내용을 초기화했습니다.', '↺');
+}
+
+/* ═══════════════════════════════════════════
    결과 표시 (순서 엄격 정렬 & 오류 방지 완료)
    ═══════════════════════════════════════════ */
 
@@ -380,11 +440,26 @@ function displayResults(name, year, month, day, result) {
     // 7. 12운성 & 12신살 & 형충파해 심화
     renderExtraAnalysis(result);
 
-    // 8. 연도별 세운 (2026년부터 15년)
-    const currentYear = new Date().getFullYear(); // 2026
+    // 8. 연도별 세운 (입춘 기준 명리학 올해부터 15년) - v5.3
+    const now = new Date();
+    const currentYear = (typeof window.getMyeongriYear === 'function')
+        ? window.getMyeongriYear(now)          // 입춘 전이면 전년으로 판정 (예: 2027-01-15 → 2026)
+        : now.getFullYear();
     const fortunes = window.generateAllFortunes(pillarsData, dayPillar.ganIdx, dayPillar.jiIdx, solarDate.year, currentYear, YEAR_COUNT);
+    renderBaseDateTime(now, currentYear, fortunes.length ? fortunes[0].ganjiKor : '');
     renderYearNav(fortunes);
     renderYearlyFortune(fortunes);
+}
+
+/* ─── 운세 조회 기준일시 표시 (v5.3) ─── */
+function renderBaseDateTime(now, myeongriYear, myeongriGanjiKor) {
+    const el = $('#baseDateTime');
+    if (!el) return;
+    const pad = n => String(n).padStart(2, '0');
+    const dateStr = `${now.getFullYear()}년 ${pad(now.getMonth() + 1)}월 ${pad(now.getDate())}일 ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    const ganji = myeongriGanjiKor ? ` (${myeongriGanjiKor})` : '';
+    el.innerHTML = `<span class="base-dt-icon">🕐</span> 운세 조회 기준일시: <strong>${dateStr}</strong>`
+        + `<span class="base-dt-divider">·</span><span class="base-dt-year">명리학 기준 올해 ${myeongriYear}년${ganji}</span>`;
 }
 
 /* ─── 대운 렌더링 ─── */
@@ -697,7 +772,17 @@ function renderYearNav(fortunes) {
             .find(c => c.dataset.year === targetYear);
 
         if (target) {
-            container.insertBefore(target, container.firstChild);
+            // ★ v5.4: 클릭한 연도부터 다음 해 순서로 전체 카드 순환 정렬
+            //   예) 2027 클릭 → [2027, 2028, 2029, …, 2040, 2026]
+            const start = parseInt(targetYear);
+            const count = fortunes.length || 15;
+            const cards = Array.from(container.querySelectorAll('.fortune-year-card'));
+            cards.sort((a, b) => {
+                const aOff = (((parseInt(a.dataset.year) - start) % count) + count) % count;
+                const bOff = (((parseInt(b.dataset.year) - start) % count) + count) % count;
+                return aOff - bOff;
+            });
+            cards.forEach(c => container.appendChild(c)); // appendChild로 기존 노드 이동 (재렌더링 없음)
             $$('.fortune-year-card').forEach(c => c.classList.remove('highlight-card'));
             target.classList.add('highlight-card');
             // '연도별 운세' 라벨(연도 버튼 바로 위)을 툴바 아래 간격을 두고 보이도록 스크롤

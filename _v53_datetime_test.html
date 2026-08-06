@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<title>v5.3 입춘 기준 연도 인식 자체 검증</title>
+<style>
+  body { font-family: sans-serif; background: #0a0a1a; color: #eee; padding: 20px; }
+  h2 { color: #f1c40f; }
+  .ok { color: #2ecc71; font-weight: bold; }
+  .fail { color: #e74c3c; font-weight: bold; }
+  pre { background: #111; padding: 12px; border-radius: 8px; line-height: 1.7; overflow-x: auto; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>v5.3 입춘(立春) 기준 명리학 연도 인식 + 15년 배열 자체 검증</h1>
+<pre id="out">실행 중...</pre>
+<script src="saju-engine.js"></script>
+<script>
+(function () {
+    const out = [];
+    let pass = 0, fail = 0;
+    const chk = (cond, label) => {
+        pass += cond ? 1 : 0;
+        fail += cond ? 0 : 1;
+        out.push((cond ? '<span class="ok">PASS</span>' : '<span class="fail">FAIL</span>') + ' ' + label);
+    };
+
+    out.push('── 1. getMyeongriYear (입춘 경계 판정) ──');
+
+    // ★ 요청 시나리오: 2027년 1월 15일 접속 → 입춘(2/4 경) 전 → 2026년 (병오)
+    const y2027_0115 = window.getMyeongriYear(new Date(2027, 0, 15, 12));
+    chk(y2027_0115 === 2026, '2027-01-15 → ' + y2027_0115 + ' (기대 2026)');
+
+    // 입춘 직후: 2027-02-05 → 2027
+    const y2027_0205 = window.getMyeongriYear(new Date(2027, 1, 5, 12));
+    chk(y2027_0205 === 2027, '2027-02-05 → ' + y2027_0205 + ' (기대 2027)');
+
+    // 입춘 당일 이전 시각(2024-02-04 16:00 < 입춘 17:27) → 2023
+    const y2024_0204 = window.getMyeongriYear(new Date(2024, 1, 4, 16));
+    chk(y2024_0204 === 2023, '2024-02-04 16:00 → ' + y2024_0204 + ' (기대 2023, 정밀 입춘 17:27 이전)');
+
+    // 입춘 당일 이후 시각(2024-02-04 22:00 > 입춘 17:27) → 2024
+    const y2024_0204b = window.getMyeongriYear(new Date(2024, 1, 4, 22));
+    chk(y2024_0204b === 2024, '2024-02-04 22:00 → ' + y2024_0204b + ' (기대 2024)');
+
+    // 평년: 2026-08-06 → 2026
+    const y2026_0806 = window.getMyeongriYear(new Date(2026, 7, 6, 12));
+    chk(y2026_0806 === 2026, '2026-08-06 → ' + y2026_0806 + ' (기대 2026)');
+
+    // 인자 없이 호출 (실제 운영 경로) → 오늘 기준 연도
+    const yNow = window.getMyeongriYear();
+    chk(typeof yNow === 'number' && yNow >= 2026, 'getMyeongriYear() 무인자 호출 → ' + yNow + ' (정상 정수)');
+
+    out.push('');
+    out.push('── 2. 15년 배열 생성 (입춘 기준 시작 연도) ──');
+
+    const r = window.calculateSaju(1995, 5, 20, 14, 'male', 'solar');
+    const fortunes = window.generateAllFortunes(r.pillars, r.dayGanIdx, r.dayPillar.jiIdx, r.solarDate.year, 2026, 15);
+
+    chk(fortunes.length === 15, '배열 개수 = ' + fortunes.length + ' (기대 15)');
+    chk(fortunes[0].year === 2026 && fortunes[14].year === 2040, '범위 = ' + fortunes[0].year + '~' + fortunes[14].year + ' (기대 2026~2040)');
+    chk(fortunes[0].ganjiKor === '병오', '첫 해 세운 = ' + fortunes[0].ganjiKor + '(' + fortunes[0].ganji + ') (기대 병오/丙午)');
+    chk(fortunes[1].ganjiKor === '정미', '둘째 해 세운 = ' + fortunes[1].ganjiKor + ' (기대 정미)');
+    chk(fortunes[14].ganjiKor === '경신', '마지막 해 세운 = ' + fortunes[14].ganjiKor + ' (기대 경신/庚申 — 2040년)');
+
+    // 15년 연속성 검증
+    let seq = true;
+    for (let i = 1; i < fortunes.length; i++) if (fortunes[i].year !== fortunes[i - 1].year + 1) seq = false;
+    chk(seq, '연도가 Y, Y+1, ..., Y+14 연속 (순차 증가)');
+
+    // 세운 텍스트 필수 9종 존재
+    const f0 = fortunes[0];
+    chk([f0.total, f0.wealth, f0.love, f0.health, f0.career, f0.academic, f0.money, f0.luck, f0.advice].every(t => typeof t === 'string' && t.length > 0),
+        '첫 해 9개 카테고리(총운/재물/애정/건강/직장/학업/금전/인덕/조언) 모두 존재');
+
+    out.push('');
+    out.push('── 3. buildFortuneJSON 연동 (기준일시/연도 일관성) ──');
+    const j = window.buildFortuneJSON(r, { year: 1995, month: 5, day: 20, hour: 14, gender: 'male', calType: 'solar' });
+    chk(j && Array.isArray(j.yearlyFortunes) && j.yearlyFortunes.length === 15, 'JSON yearlyFortunes 15개');
+    chk(j.yearlyFortunes[0].year === yNow, 'JSON 첫 해(' + j.yearlyFortunes[0].year + ') = getMyeongriYear()(' + yNow + ') 일치');
+
+    out.push('');
+    out.push('════════════════════════════════════════');
+    out.push('<b>종합: PASS ' + pass + ' / FAIL ' + fail + '</b>');
+    out.push(fail === 0 ? '<span class="ok">결론: v5.3 입춘 기준 연도 인식 정상 — 오류 없음.</span>' : '<span class="fail">결론: 오류 발생</span>');
+    document.getElementById('out').innerHTML = out.join('\n');
+})();
+</script>
+</body>
+</html>

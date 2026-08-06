@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<title>v5.4 연도 카드 순환 정렬 검증</title>
+<style>
+  body { font-family: sans-serif; background: #0a0a1a; color: #eee; padding: 20px; }
+  h2 { color: #f1c40f; }
+  .ok { color: #2ecc71; font-weight: bold; }
+  .fail { color: #e74c3c; font-weight: bold; }
+  pre { background: #111; padding: 12px; border-radius: 8px; line-height: 1.7; overflow-x: auto; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>v5.4 연도 카드 순환 정렬 (클릭 연도 → 다음 해 순서) 자체 검증</h1>
+<pre id="out">실행 중...</pre>
+<script>
+(function () {
+    const out = [];
+    let pass = 0, fail = 0;
+    const chk = (cond, label) => {
+        pass += cond ? 1 : 0;
+        fail += cond ? 0 : 1;
+        out.push((cond ? '<span class="ok">PASS</span>' : '<span class="fail">FAIL</span>') + ' ' + label);
+    };
+
+    // script.js v5.4와 동일한 정렬 알고리즘 시뮬레이션
+    // dom = 현재 카드 DOM 순서 (data-year 배열), clickYear = 클릭한 연도
+    function sortCards(dom, clickYear) {
+        const start = parseInt(clickYear);
+        const count = dom.length;
+        const cards = [...dom];
+        cards.sort((a, b) => {
+            const aOff = (((parseInt(a) - start) % count) + count) % count;
+            const bOff = (((parseInt(b) - start) % count) + count) % count;
+            return aOff - bOff;
+        });
+        return cards; // appendChild 순서 = 이 배열 순서
+    }
+
+    const YEAR0 = 2026, N = 15;
+    const init = Array.from({ length: N }, (_, i) => YEAR0 + i); // [2026..2040]
+
+    const scenarios = [
+        ['2027년 클릭', 2027, [2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040, 2026]],
+        ['2031년 클릭', 2031, [2031, 2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040, 2026, 2027, 2028, 2029, 2030]],
+        ['2040년(마지막) 클릭', 2040, [2040, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039]],
+        ['2026년(첫 해) 클릭', 2026, [2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040]]
+    ];
+
+    scenarios.forEach(([name, clickYear, expected]) => {
+        const got = sortCards(init, clickYear);
+        const ok = got.join(',') === expected.join(',');
+        chk(ok, name + ' → [' + got.join(', ') + ']' + (ok ? '' : ' (기대 [' + expected.join(', ') + '])'));
+    });
+
+    // 연속 클릭 시뮬레이션: 2031 클릭 → 2027 클릭 → 2040 클릭
+    let dom = [...init];
+    dom = sortCards(dom, 2031);
+    dom = sortCards(dom, 2027);
+    dom = sortCards(dom, 2040);
+    chk(dom.join(',') === [2040, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039].join(','),
+        '연속 클릭(2031→2027→2040) 최종 순서 = [' + dom.join(', ') + ']');
+
+    out.push('');
+    out.push('════════════════════════════════════════');
+    out.push('<b>종합: PASS ' + pass + ' / FAIL ' + fail + '</b>');
+    out.push(fail === 0 ? '<span class="ok">결론: v5.4 순환 정렬 정상 — 클릭 연도 → 다음 해 순서로 정렬됩니다.</span>' : '<span class="fail">결론: 오류 발생</span>');
+    document.getElementById('out').innerHTML = out.join('\n');
+})();
+</script>
+</body>
+</html>

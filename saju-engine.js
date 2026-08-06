@@ -1249,7 +1249,7 @@ function buildFortuneJSON(result, inputMeta) {
 
     const yearlyFortunes = generateAllFortunes(
         result.pillars, result.dayGanIdx, result.dayPillar.jiIdx,
-        result.solarDate.year, new Date().getFullYear(), 15
+        result.solarDate.year, getMyeongriYear(), 15
     );
 
     return {
@@ -1319,8 +1319,18 @@ function buildFortuneJSON(result, inputMeta) {
     };
 }
 
+/* ★ v5.3: 명리학(입춘) 기준 '올해' 연도 판정
+   - 실제 입춘 시각(황경 315°, 정밀 절기 공식) 이전이면 전년도로 판정
+   - 예) 2027-01-15 접속 → 입춘(2027-02-04 경) 이전 → 2026년(丙午) 기준 15년 배열 생성 */
+function getMyeongriYear(now) {
+    if (!(now instanceof Date) || isNaN(now.getTime())) now = new Date();
+    const ipchun = findSolarTermTime(now.getFullYear(), 315);
+    return now < ipchun ? now.getFullYear() - 1 : now.getFullYear();
+}
+
 window.calculateSaju = calculateSaju;
 window.calculateCompatibility = calculateCompatibility;
+window.getMyeongriYear = getMyeongriYear;
 window.generateAllFortunes = generateAllFortunes;
 window.generateCharacterAnalysis = generateCharacterAnalysis;
 window.buildFortuneJSON = buildFortuneJSON;
